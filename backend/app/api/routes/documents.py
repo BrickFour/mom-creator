@@ -92,6 +92,31 @@ def _load_export_data(
 
     meeting = meeting_response.data[0]
 
+    # Resolve the creator UUID to the human-readable profile name.
+    # The meetings.created_by column stores a user UUID, which must
+    # never be printed directly in the exported document.
+    admin = create_admin_supabase_client()
+
+    creator_name = "—"
+    created_by = meeting.get("created_by")
+
+    if created_by:
+        creator_profile = (
+            admin.table("profiles")
+            .select("id,name")
+            .eq("id", created_by)
+            .limit(1)
+            .execute()
+        )
+
+        if creator_profile.data:
+            creator_name = (
+                creator_profile.data[0].get("name")
+                or "—"
+            )
+
+    meeting["created_by_name"] = creator_name
+
     # --------------------------------------------------------
     # MOM
     # --------------------------------------------------------
@@ -171,8 +196,6 @@ def _load_export_data(
     # --------------------------------------------------------
     # Participants
     # --------------------------------------------------------
-
-    admin = create_admin_supabase_client()
 
     participant_response = (
         admin.table(

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* =========================================================
@@ -5,21 +6,32 @@
    ========================================================= */
 
 @theme {
-  /* Body / UI font */
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, sans-serif;
+  /* =======================================================
+     TYPOGRAPHY
+     ======================================================= */
 
-  /* Display font for major headings */
-  --font-heading: 'Kaushan Script', cursive;
+  /* Main application font */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
-  /* Brand / logo font */
+  /* Headings use the same corporate font */
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /* Brand font
+     Kept only for legacy brand-font references.
+     Do not use for normal application UI. */
   --font-brand: 'Saved by Zero', sans-serif;
 
   /* Code / technical text */
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
-    Monaco, Consolas, monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular,
+    Menlo, Monaco, Consolas, monospace;
 
-  /* Brand colors */
+
+  /* =======================================================
+     BRAND COLORS
+     ======================================================= */
+
   --color-brand-blue: #023b77;
   --color-brand-teal: #039583;
 }
@@ -27,7 +39,7 @@
 
 /* =========================================================
    SAVED BY ZERO
-   Used rarely, primarily for the MOM Creator brand/logo
+   Legacy brand font only
    ========================================================= */
 
 @font-face {
@@ -44,13 +56,38 @@
    ========================================================= */
 
 html {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  color: #0f172a;
+  background: #ffffff;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 
@@ -58,26 +95,49 @@ body {
    HEADINGS
    ========================================================= */
 
-/*
- * Kaushan Script is intentionally limited to major page headings.
- *
- * h1 = decorative / primary heading
- * h2-h6 = normal UI typography
- *
- * This prevents the application from becoming overly stylized.
- */
-
-h1 {
-  font-family: 'Kaushan Script', cursive;
-}
-
+h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  margin-top: 0;
+}
+
+
+/* =========================================================
+   HEADING WEIGHTS
+   ========================================================= */
+
+h1 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+h4,
+h5,
+h6 {
+  font-weight: 600;
 }
 
 
@@ -86,8 +146,10 @@ h6 {
    ========================================================= */
 
 /*
- * Use this ONLY for the MOM Creator brand/logo
- * and other very rare branding moments.
+ * This class is retained for compatibility with existing
+ * components that may still reference .brand-font.
+ *
+ * Use the Samvaad PNG logo instead of this for branding.
  */
 
 .brand-font {
@@ -123,12 +185,104 @@ h6 {
 
 
 /* =========================================================
+   BRAND COLOR UTILITIES
+   ========================================================= */
+
+.text-brand-blue {
+  color: #023b77;
+}
+
+.text-brand-teal {
+  color: #039583;
+}
+
+.bg-brand-blue {
+  background-color: #023b77;
+}
+
+.bg-brand-teal {
+  background-color: #039583;
+}
+
+.border-brand-blue {
+  border-color: #023b77;
+}
+
+.border-brand-teal {
+  border-color: #039583;
+}
+
+
+/* =========================================================
+   FOCUS STYLES
+   ========================================================= */
+
+:focus-visible {
+  outline: 2px solid #023b77;
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   BUTTON / FORM TYPOGRAPHY
+   ========================================================= */
+
+button,
+input,
+textarea,
+select {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+
+
+/* =========================================================
+   PLACEHOLDER TEXT
+   ========================================================= */
+
+::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+
+/* =========================================================
    TEXT SELECTION
    ========================================================= */
 
 ::selection {
   background: #023b77;
   color: #ffffff;
+}
+
+
+/* =========================================================
+   CUSTOM SCROLLBAR
+   ========================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 
@@ -146,6 +300,7 @@ h6 {
   }
 }
 
+
 @keyframes zoomIn {
   from {
     opacity: 0;
@@ -158,6 +313,7 @@ h6 {
   }
 }
 
+
 @keyframes slideInFromBottom {
   from {
     opacity: 0;
@@ -169,6 +325,7 @@ h6 {
     transform: translateY(0);
   }
 }
+
 
 @keyframes slideInFromLeft {
   from {
@@ -207,6 +364,25 @@ h6 {
 
 .slide-in-from-left {
   animation-name: slideInFromLeft;
+}
+
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+
+/* =========================================================
+   IMAGES
+   ========================================================= */
+
+img {
+  max-width: 100%;
 }
 
 

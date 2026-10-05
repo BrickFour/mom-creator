@@ -12,6 +12,8 @@ import { ToastProvider } from './context/ToastContext.jsx';
 import { AppLayout } from './components/layout/AppLayout.jsx';
 
 import { LoginPage } from './pages/LoginPage.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import { RegisterPage } from './pages/RegisterPage.jsx';
 import { DashboardPage } from './pages/DashboardPage.jsx';
 import { MeetingsPage } from './pages/MeetingsPage.jsx';
@@ -82,7 +84,7 @@ function MainApp() {
           </div>
 
           <p className="text-xs font-medium text-slate-500">
-            Loading MOM Creator...
+            Loading Samvaad...
           </p>
         </div>
       </div>
@@ -102,6 +104,23 @@ function MainApp() {
 
   if (currentPath === '/terms') {
     return <TermsOfServicePage />;
+  }
+
+  if (currentPath === '/forgot-password') {
+    return (
+      <ForgotPasswordPage
+        onNavigateToLogin={() => navigate('/login')}
+      />
+    );
+  }
+
+  if (currentPath === '/reset-password') {
+    return (
+      <ResetPasswordPage
+        onNavigateToLogin={() => navigate('/login')}
+        onNavigateToForgotPassword={() => navigate('/forgot-password')}
+      />
+    );
   }
 
   /*
@@ -152,6 +171,9 @@ function MainApp() {
       <LoginPage
         onNavigateToRegister={() =>
           navigate('/register')
+        }
+        onNavigateToForgotPassword={() =>
+          navigate('/forgot-password')
         }
       />
     );

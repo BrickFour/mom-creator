@@ -904,9 +904,32 @@ def _render_signoff(
 
     meeting = data["meeting"]
 
+    # meetings.created_by is a UUID. The export payload resolves it
+    # to created_by_name in documents.py before this renderer is called.
     prepared_name = (
-        meeting.get("created_by")
+        meeting.get("created_by_name")
         or "—"
+    )
+
+    # Use actual ReportLab Paragraph objects here. Do not pass <br/>
+    # through _paragraph(), because _paragraph() intentionally escapes
+    # HTML/XML markup and would print <br/> literally in the PDF.
+    from xml.sax.saxutils import escape
+
+    prepared_name = escape(_clean(prepared_name))
+
+    prepared_cell = Paragraph(
+        "Name: " + prepared_name
+        + "<br/>Designation: —"
+        + "<br/><br/>Signature / Date: ____________________",
+        _styles()["table_cell"],
+    )
+
+    reviewer_cell = Paragraph(
+        "Name: —"
+        "<br/>Designation: —"
+        "<br/><br/>Signature / Date: ____________________",
+        _styles()["table_cell"],
     )
 
     rows = [
@@ -915,20 +938,8 @@ def _render_signoff(
             "REVIEWED & APPROVED BY",
         ],
         [
-            (
-                f"Name: {_clean(prepared_name)}"
-                "<br/>"
-                "Designation: —"
-                "<br/><br/>"
-                "Signature / Date: ____________________"
-            ),
-            (
-                "Name: —"
-                "<br/>"
-                "Designation: —"
-                "<br/><br/>"
-                "Signature / Date: ____________________"
-            ),
+            prepared_cell,
+            reviewer_cell,
         ],
     ]
 

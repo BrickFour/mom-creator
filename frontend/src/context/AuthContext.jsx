@@ -120,6 +120,58 @@ export function AuthProvider({ children }) {
     }
   };
 
+
+  const requestPasswordReset = async (email) => {
+    setAuthError(null);
+
+    const supabase = getSupabase();
+
+    if (!supabase) {
+      throw new Error('Supabase is not configured.');
+    }
+
+    const normalizedEmail = String(email || '').trim();
+
+    if (!normalizedEmail) {
+      throw new Error('Please enter your email address.');
+    }
+
+    const redirectTo = `${window.location.origin}/reset-password`;
+
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      normalizedEmail,
+      { redirectTo }
+    );
+
+    if (error) {
+      setAuthError(error.message || 'Failed to send password reset email.');
+      throw error;
+    }
+
+    return true;
+  };
+
+  const updatePassword = async (password) => {
+    setAuthError(null);
+
+    const supabase = getSupabase();
+
+    if (!supabase) {
+      throw new Error('Supabase is not configured.');
+    }
+
+    const { data, error } = await supabase.auth.updateUser({
+      password,
+    });
+
+    if (error) {
+      setAuthError(error.message || 'Failed to update password.');
+      throw error;
+    }
+
+    return data;
+  };
+
   const signOut = async () => {
     try {
       await signOutUser();
@@ -141,6 +193,8 @@ export function AuthProvider({ children }) {
         authError,
         signIn,
         signUp,
+        requestPasswordReset,
+        updatePassword,
         signOut,
         refreshProfile: fetchProfile,
       }}

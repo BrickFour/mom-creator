@@ -1,4 +1,5 @@
 import { useAuth } from '../context/AuthContext.jsx';
+import samvaadLogo from '../assets/samvaad-logo.png';
 
 function navigateTo(path) {
   window.history.pushState({}, '', path);
@@ -6,68 +7,109 @@ function navigateTo(path) {
 }
 
 export function PrivacyPolicyPage() {
-    const { session } = useAuth();
-    const isSignedIn = !!session;
+  const { session } = useAuth();
+  const isSignedIn = !!session;
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <header className="border-b border-slate-800">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
+    <div className="min-h-screen bg-white text-slate-700">
+
+      {/* =====================================================
+          HEADER
+          ===================================================== */}
+
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
+
           <button
             type="button"
             onClick={() => navigateTo('/')}
-            className="text-xl font-bold text-white"
+            className="flex items-center transition-opacity hover:opacity-85"
           >
-            MOM Creator
+            <img
+              src={samvaadLogo}
+              alt="Samvaad"
+              className="h-14 w-auto object-contain"
+            />
           </button>
 
           <button
             type="button"
-            onClick={() => navigateTo(isSignedIn ? '/dashboard' : '/login')}
-            className="rounded-lg px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-            >
+            onClick={() =>
+              navigateTo(isSignedIn ? '/dashboard' : '/login')
+            }
+            className="
+              rounded-lg
+              px-4
+              py-2
+              text-sm
+              font-medium
+              text-slate-600
+              transition-colors
+              hover:bg-slate-100
+              hover:text-[#023b77]
+            "
+          >
             {isSignedIn ? 'Dashboard' : 'Sign in'}
           </button>
+
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-6 py-16">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold tracking-tight text-white">
+
+      {/* =====================================================
+          MAIN
+          ===================================================== */}
+
+      <main className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+
+        <div className="mb-12 border-b border-slate-200 pb-10">
+
+          <div className="mb-4 inline-flex items-center rounded-full border border-[#039583]/20 bg-[#039583]/5 px-3 py-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#039583]">
+              Legal
+            </span>
+          </div>
+
+          <h1 className="text-4xl font-bold tracking-tight text-[#023b77] sm:text-5xl">
             Privacy Policy
           </h1>
 
           <p className="mt-4 text-sm text-slate-500">
             Last updated: September 2026
           </p>
+
         </div>
 
-        <div className="space-y-10 leading-7 text-slate-300">
+
+        <div className="space-y-12 leading-7 text-slate-600">
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               1. Introduction
             </h2>
 
             <p className="mt-4">
-              MOM Creator is a meeting management application designed to help
+              Samvaad is a meeting management application designed to help
               users capture meeting information, process meeting recordings
               and transcripts, generate Minutes of Meeting, and manage action
               items.
             </p>
 
             <p className="mt-4">
-              This Privacy Policy explains what information MOM Creator
-              processes, how that information is used, and how users can
-              manage their information.
+              This Privacy Policy explains what information Samvaad processes,
+              how that information is used, and how users can manage their
+              information.
             </p>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               2. Information We Process
             </h2>
 
             <p className="mt-4">
-              Depending on how you use MOM Creator, the service may process:
+              Depending on how you use Samvaad, the service may process:
             </p>
 
             <ul className="mt-4 list-disc space-y-2 pl-6">
@@ -78,18 +120,22 @@ export function PrivacyPolicyPage() {
               <li>Meeting transcripts and transcript-related information.</li>
               <li>Minutes of Meeting generated from meeting content.</li>
               <li>Action items and related task information.</li>
-              <li>Information required to connect supported third-party services.</li>
+              <li>
+                Information required to connect supported third-party
+                services.
+              </li>
             </ul>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               3. Google Account and Google API Data
             </h2>
 
             <p className="mt-4">
-              If you connect a Google account, MOM Creator may request access
-              to Google services required to provide its integration features.
+              If you connect a Google account, Samvaad may request access to
+              Google services required to provide its integration features.
               Depending on the enabled functionality, this may include Google
               Meet and Google Calendar data.
             </p>
@@ -102,13 +148,14 @@ export function PrivacyPolicyPage() {
             </p>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               4. How Google Data Is Used
             </h2>
 
             <p className="mt-4">
-              Google data accessed through MOM Creator may be used to support
+              Google data accessed through Samvaad may be used to support
               meeting creation, meeting-related workflows, calendar events,
               and other integration functionality explicitly provided by the
               application.
@@ -116,18 +163,19 @@ export function PrivacyPolicyPage() {
 
             <p className="mt-4">
               Google data is not used for advertising or sold to third parties.
-              MOM Creator does not use Google user data for purposes unrelated
-              to the functionality of the connected integration.
+              Samvaad does not use Google user data for purposes unrelated to
+              the functionality of the connected integration.
             </p>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               5. Google OAuth Credentials
             </h2>
 
             <p className="mt-4">
-              When you authorize Google integration, MOM Creator stores the
+              When you authorize Google integration, Samvaad stores the
               credentials necessary to maintain the connection. OAuth refresh
               tokens are encrypted before being stored by the application.
             </p>
@@ -139,8 +187,9 @@ export function PrivacyPolicyPage() {
             </p>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               6. Meeting Recordings, Transcripts, and AI Processing
             </h2>
 
@@ -160,30 +209,32 @@ export function PrivacyPolicyPage() {
             </p>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               7. Third-Party Services
             </h2>
 
             <p className="mt-4">
-              MOM Creator may use third-party infrastructure and services to
+              Samvaad may use third-party infrastructure and services to
               provide authentication, database storage, file storage, AI
               processing, communication, and external integrations.
             </p>
 
             <p className="mt-4">
               Information may be processed by these providers only as required
-              to provide the corresponding functionality of MOM Creator.
+              to provide the corresponding functionality of Samvaad.
             </p>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               8. Data Security
             </h2>
 
             <p className="mt-4">
-              MOM Creator uses security controls intended to protect account
+              Samvaad uses security controls intended to protect account
               information, application data, and integration credentials.
               These controls include authenticated access, database access
               policies, encrypted OAuth credentials, and HTTPS for production
@@ -195,8 +246,9 @@ export function PrivacyPolicyPage() {
             </p>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               9. Data Retention and Deletion
             </h2>
 
@@ -213,21 +265,23 @@ export function PrivacyPolicyPage() {
             </p>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               10. Disconnecting Google
             </h2>
 
             <p className="mt-4">
-              Users may disconnect their Google account from MOM Creator using
-              the application's Google integration controls where available.
-              Disconnecting the integration prevents MOM Creator from using the
+              Users may disconnect their Google account from Samvaad using the
+              application's Google integration controls where available.
+              Disconnecting the integration prevents Samvaad from using the
               stored Google authorization to make further API requests.
             </p>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               11. Changes to This Policy
             </h2>
 
@@ -238,35 +292,63 @@ export function PrivacyPolicyPage() {
             </p>
           </section>
 
+
           <section>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#023b77] sm:text-2xl">
               12. Contact
             </h2>
 
             <p className="mt-4">
-              For privacy-related questions or requests, contact the MOM
-              Creator application operator through the contact information
-              provided with the service.
+              For privacy-related questions or requests, contact the Samvaad
+              application operator through the contact information provided
+              with the service.
             </p>
           </section>
+
         </div>
       </main>
 
-      <footer className="border-t border-slate-800">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-8">
-          <p className="text-sm text-slate-500">
-            © {new Date().getFullYear()} MOM Creator
-          </p>
+
+      {/* =====================================================
+          FOOTER
+          ===================================================== */}
+
+      <footer className="border-t border-slate-200 bg-slate-50">
+
+        <div className="mx-auto flex max-w-4xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
+
+          <div className="flex items-center gap-3">
+
+            <img
+              src={samvaadLogo}
+              alt="Samvaad"
+              className="h-10 w-auto object-contain"
+            />
+
+            <p className="text-sm text-slate-500">
+              © {new Date().getFullYear()} Samvaad
+            </p>
+
+          </div>
 
           <button
             type="button"
             onClick={() => navigateTo('/')}
-            className="text-sm text-slate-400 hover:text-white"
+            className="
+              text-sm
+              font-medium
+              text-slate-500
+              transition-colors
+              hover:text-[#023b77]
+            "
           >
             Back to home
           </button>
+
         </div>
+
       </footer>
+
     </div>
   );
 }

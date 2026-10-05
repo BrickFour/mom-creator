@@ -4,7 +4,7 @@ import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
 import { Lock, Mail, AlertTriangle } from 'lucide-react';
 
-export function LoginPage({ onNavigateToRegister }) {
+export function LoginPage({ onNavigateToRegister, onNavigateToForgotPassword }) {
   const { signIn, configured, authError } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -35,7 +35,7 @@ export function LoginPage({ onNavigateToRegister }) {
             M
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            MOM Creator
+            Samvaad
           </h1>
           <p className="text-xs text-slate-500">
             Sign in to access your meeting minutes and action items.
@@ -92,6 +92,16 @@ export function LoginPage({ onNavigateToRegister }) {
             >
               Sign In
             </Button>
+
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={onNavigateToForgotPassword}
+                className="text-xs font-semibold text-[#023b77] hover:text-[#039583] transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
           </form>
 
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
