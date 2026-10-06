@@ -60,6 +60,7 @@ export function MeetingDetailPage({
   const [editTitle, setEditTitle] = useState('');
   const [editDesc, setEditDesc] = useState('');
   const [editDate, setEditDate] = useState('');
+  const [editVenue, setEditVenue] = useState('');
   const [savingMeeting, setSavingMeeting] = useState(false);
 
   // Delete Meeting Dialog
@@ -221,6 +222,7 @@ export function MeetingDetailPage({
     if (!meeting) return;
     setEditTitle(meeting.title || '');
     setEditDesc(meeting.description || '');
+    setEditVenue(meeting.venue || '');
     if (meeting.meeting_date) {
       const d = new Date(meeting.meeting_date);
       const year = d.getFullYear();
@@ -246,6 +248,7 @@ export function MeetingDetailPage({
         title: editTitle.trim(),
         description: editDesc.trim(),
         meeting_date: isoDate,
+        venue: editVenue.trim(),
       });
       showToast('Meeting updated', 'success');
       setEditModalOpen(false);
@@ -499,7 +502,7 @@ export function MeetingDetailPage({
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         title="Edit Meeting Details"
-        description="Update meeting title, description, or scheduled date."
+        description="Update meeting title, venue, description, or scheduled date."
       >
         <form onSubmit={handleSaveMeetingDetails} className="space-y-4">
           <Input
@@ -515,6 +518,12 @@ export function MeetingDetailPage({
             label="Meeting Date"
             value={editDate}
             onChange={(e) => setEditDate(e.target.value)}
+          />
+          <Input
+            label="Venue / Location"
+            placeholder="e.g. Conference Room A"
+            value={editVenue}
+            onChange={(e) => setEditVenue(e.target.value)}
           />
 
           <Textarea

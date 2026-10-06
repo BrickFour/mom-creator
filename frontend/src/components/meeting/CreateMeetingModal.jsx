@@ -18,6 +18,7 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }) {
   const [mode, setMode] = useState('upload');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [venue, setVenue] = useState('');
   const [meetingDate, setMeetingDate] = useState(() => {
     const now = new Date();
     // format as YYYY-MM-DDTHH:mm
@@ -78,8 +79,9 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }) {
         workspace_id: currentWorkspace.id,
         title: title.trim(),
         description: description.trim(),
-        mode: 'import',
+        mode: mode === 'online' ? 'google_meet' : mode,
         meeting_date: isoDate,
+        venue: venue.trim(),
       });
 
       const uploaded = await uploadToStorage({
@@ -112,6 +114,7 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }) {
       showToast('Meeting imported and MOM generated successfully', 'success');
       setTitle('');
       setDescription('');
+      setVenue('');
       onClose();
       if (onMeetingCreated) {
         onMeetingCreated({ ...newMeeting, processing_job: completed });
@@ -151,6 +154,7 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }) {
       showToast('Meeting created successfully', 'success');
       setTitle('');
       setDescription('');
+      setVenue('');
       onClose();
       if (onMeetingCreated) {
         onMeetingCreated(newMeeting);
@@ -235,6 +239,13 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }) {
               value={meetingDate}
               onChange={(e) => setMeetingDate(e.target.value)}
               required
+            />
+
+            <Input
+              label="Venue / Location"
+              placeholder="e.g. Conference Room A"
+              value={venue}
+              onChange={(e) => setVenue(e.target.value)}
             />
           </div>
 

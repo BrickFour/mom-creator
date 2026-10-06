@@ -1,6 +1,6 @@
 import { apiRequest } from '../lib/api.js';
 
-export async function createMeeting({ workspace_id, title, description = '', mode, meeting_date }) {
+export async function createMeeting({ workspace_id, title, description = '', mode, meeting_date, venue = ''}) {
   return await apiRequest('/api/v1/meetings', {
     method: 'POST',
     body: JSON.stringify({
@@ -9,6 +9,7 @@ export async function createMeeting({ workspace_id, title, description = '', mod
       description,
       mode,
       meeting_date,
+      venue,
     }),
   });
 }
@@ -25,16 +26,30 @@ export async function getMeeting(meetingId) {
   });
 }
 
-export async function updateMeeting(meetingId, { title, description, meeting_date }) {
+export async function updateMeeting(
+  meetingId,
+  { title, description, meeting_date, venue }
+) {
   const payload = {};
-  if (title !== undefined) payload.title = title;
-  if (description !== undefined) payload.description = description;
-  if (meeting_date !== undefined) payload.meeting_date = meeting_date;
-
-  return await apiRequest(`/api/v1/meetings/${meetingId}`, {
-    method: 'PATCH',
-    body: JSON.stringify(payload),
-  });
+  if (title !== undefined) {
+    payload.title = title;
+  }
+  if (description !== undefined) {
+    payload.description = description;
+  }
+  if (meeting_date !== undefined) {
+    payload.meeting_date = meeting_date;
+  }
+  if (venue !== undefined) {
+    payload.venue = venue;
+  }
+  return await apiRequest(
+    `/api/v1/meetings/${meetingId}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
 export async function deleteMeeting(meetingId) {

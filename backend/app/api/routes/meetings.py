@@ -71,7 +71,7 @@ async def create_meeting(
         )
 
     try:
-        # Create meeting without .select().single()
+        # Create meeting without .select()
         insert_response = (
             supabase
             .table("meetings")
@@ -85,6 +85,11 @@ async def create_meeting(
                     "meeting_date": (
                         payload.meeting_date.isoformat()
                         if payload.meeting_date
+                        else None
+                    ),
+                    "venue": (
+                        payload.venue.strip()
+                        if payload.venue
                         else None
                     ),
                 }
@@ -122,6 +127,7 @@ async def create_meeting(
                 mode,
                 status,
                 meeting_date,
+                venue,
                 source_file_path,
                 audio_file_path,
                 video_file_path,
@@ -173,6 +179,7 @@ async def list_meetings(
             mode,
             status,
             meeting_date,
+            venue,
             source_file_path,
             audio_file_path,
             video_file_path,
@@ -220,6 +227,7 @@ async def get_meeting(
             mode,
             status,
             meeting_date,
+            venue,
             source_file_path,
             audio_file_path,
             video_file_path,
@@ -232,7 +240,7 @@ async def get_meeting(
             "id",
             meeting_id,
         )
-        .single()
+        
         .execute()
     )
 
@@ -242,7 +250,7 @@ async def get_meeting(
             detail="Meeting not found",
         )
 
-    return response.data
+    return response.data[0]
 
 
 # ============================================================
@@ -279,6 +287,13 @@ async def update_meeting(
             payload.meeting_date.isoformat()
         )
 
+    if payload.venue is not None:
+        updates["venue"] = (
+            payload.venue.strip()
+            if payload.venue.strip()
+            else None
+        )
+
     if not updates:
         raise HTTPException(
             status_code=400,
@@ -303,6 +318,7 @@ async def update_meeting(
             mode,
             status,
             meeting_date,
+            venue,
             source_file_path,
             audio_file_path,
             video_file_path,
@@ -311,7 +327,7 @@ async def update_meeting(
             updated_at
             """
         )
-        .single()
+        
         .execute()
     )
 
@@ -321,7 +337,7 @@ async def update_meeting(
             detail="Failed to update meeting",
         )
 
-    return response.data
+    return response.data[0]
 
 
 # ============================================================

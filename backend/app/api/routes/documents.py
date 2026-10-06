@@ -73,6 +73,7 @@ def _load_export_data(
             "mode,"
             "status,"
             "meeting_date,"
+            "venue,"
             "created_at,"
             "updated_at"
         )

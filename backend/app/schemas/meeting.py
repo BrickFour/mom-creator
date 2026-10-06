@@ -27,6 +27,10 @@ class MeetingCreate(BaseModel):
     description: Optional[str] = None
     mode: MeetingMode
     meeting_date: Optional[datetime] = None
+    venue: Optional[str] = Field(
+        default=None,
+        max_length=500,
+    )
 
 class MeetingUpdate(BaseModel):
     title: Optional[str] = Field(
@@ -36,6 +40,10 @@ class MeetingUpdate(BaseModel):
     )
     description: Optional[str] = None
     meeting_date: Optional[datetime] = None
+    venue: Optional[str] = Field(
+        default=None,
+        max_length=500,
+    )
 
 class MeetingResponse(BaseModel):
     id: str
@@ -46,6 +54,7 @@ class MeetingResponse(BaseModel):
     mode: MeetingMode
     status: MeetingStatus
     meeting_date: Optional[datetime]
+    venue: Optional[str]
     source_file_path: Optional[str]
     audio_file_path: Optional[str]
     video_file_path: Optional[str]
