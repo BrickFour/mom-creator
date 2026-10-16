@@ -11,14 +11,27 @@ import {
   PhoneCall,
   ShieldAlert,
   Radio,
+  Download,
+  WifiOff,
+  CheckCircle2,
+  HardDrive,
 } from 'lucide-react';
 import { Button } from '../common/Button.jsx';
+import {
+  saveOfflineRecording,
+  getOfflineRecording,
+  deleteOfflineRecording,
+} from '../../lib/offlineAudioStorage.js';
 
 // 1-second silent WAV data URI to maintain active mobile audio session in background (iOS / Android)
 const SILENT_AUDIO_URI =
   'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
 
-export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
+export function BrowserRecorder({
+  meetingId = 'current_meeting',
+  onRecordingComplete,
+  disabled = false,
+}) {
   // idle | recording | paused | stopped
   const [recordingState, setRecordingState] = useState('idle');
   const [duration, setDuration] = useState(0);
@@ -29,6 +42,11 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
   const [interruptedByCall, setInterruptedByCall] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0); // 0 to 100 for live meter
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+  const [recoveredFromStorage, setRecoveredFromStorage] = useState(false);
+  const [storageSaveStatus, setStorageSaveStatus] = useState(null);
 
   const mediaRecorderRef = useRef(null);
   const mediaStreamRef = useRef(null);
@@ -100,6 +118,47 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
     }
   };
 
+  // Restore any unsaved recording from IndexedDB on mount (e.g. after phone refresh/crash)
+  useEffect(() => {
+    let isMounted = true;
+    async function checkSavedRecording() {
+      try {
+        const saved = await getOfflineRecording(meetingId);
+        if (saved && saved.blob && isMounted && recordingState === 'idle') {
+          const url = URL.createObjectURL(saved.blob);
+          audioUrlRef.current = url;
+          setAudioBlob(saved.blob);
+          setAudioUrl(url);
+          setDuration(saved.duration || 0);
+          setDetectedExt(saved.detectedExt || 'webm');
+          setRecordingState('stopped');
+          setRecoveredFromStorage(true);
+          setStorageSaveStatus('saved');
+        }
+      } catch (err) {
+        console.warn('Could not restore offline recording from IndexedDB:', err);
+      }
+    }
+    checkSavedRecording();
+    return () => {
+      isMounted = false;
+    };
+  }, [meetingId]);
+
+  // Monitor online / offline connectivity
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   // Re-acquire wake lock if tab becomes visible again while recording
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -118,12 +177,17 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
     };
   }, [recordingState]);
 
-  // Prevent accidental navigation while recording
+  // Prevent accidental navigation while recording or when an unuploaded audio is ready
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (recordingState === 'recording' || recordingState === 'paused') {
         e.preventDefault();
-        e.returnValue = 'You have an active recording. Are you sure you want to leave?';
+        e.returnValue = 'You have an active recording in progress. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+      if (recordingState === 'stopped' && audioBlob) {
+        e.preventDefault();
+        e.returnValue = 'You have an unuploaded meeting recording saved on this device. Are you sure you want to leave?';
         return e.returnValue;
       }
     };
@@ -132,7 +196,7 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [recordingState]);
+  }, [recordingState, audioBlob]);
 
   // Clean up all resources on unmount
   useEffect(() => {
@@ -285,7 +349,7 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
         }
       };
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const finalType = mimeType || mediaRecorder.mimeType || 'audio/webm';
         const blob = new Blob(chunksRef.current, { type: finalType });
         setAudioBlob(blob);
@@ -300,6 +364,19 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
         audioUrlRef.current = url;
         setAudioUrl(url);
         setRecordingState('stopped');
+
+        // Persist to local IndexedDB immediately to survive refreshes & tab drops
+        try {
+          await saveOfflineRecording({
+            meetingId,
+            blob,
+            duration: accumulatedDurationRef.current || duration,
+            detectedExt: ext,
+          });
+          setStorageSaveStatus('saved');
+        } catch (saveErr) {
+          console.warn('Auto-save to IndexedDB failed:', saveErr);
+        }
 
         // Stop all audio tracks
         stream.getTracks().forEach((track) => track.stop());
@@ -406,7 +483,7 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
     }
   };
 
-  const resetRecording = () => {
+  const resetRecording = async () => {
     if (audioUrlRef.current) {
       try {
         URL.revokeObjectURL(audioUrlRef.current);
@@ -425,6 +502,15 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
     setInterruptedByCall(false);
     setAudioLevel(0);
     setIsSubmitting(false);
+    setRecoveredFromStorage(false);
+    setStorageSaveStatus(null);
+
+    // Delete saved backup from IndexedDB on discard
+    try {
+      await deleteOfflineRecording(meetingId);
+    } catch (e) {
+      console.warn('Failed to delete cached recording:', e);
+    }
 
     if (timerRef.current) clearInterval(timerRef.current);
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
@@ -435,15 +521,51 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
   const handleUploadAndGenerate = async () => {
     if (!audioBlob || isSubmitting) return;
 
+    if (!navigator.onLine) {
+      setPermissionError(
+        'You are currently offline. Please reconnect to Wi-Fi or mobile data to upload and generate MOM, or download a local audio backup below.'
+      );
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setPermissionError('');
       const fileName = `meeting_rec_${Date.now()}.${detectedExt}`;
       await onRecordingComplete(audioBlob, fileName);
+
+      // Clean up cached recording from IndexedDB on successful upload
+      try {
+        await deleteOfflineRecording(meetingId);
+      } catch (e) {
+        console.warn('Failed to delete offline recording after upload:', e);
+      }
     } catch (err) {
       console.error('Recording upload failed:', err);
       setPermissionError(err.message || 'Failed to upload recording. Please try again.');
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDownloadAudioBackup = () => {
+    if (!audioBlob) return;
+    try {
+      const downloadUrl = URL.createObjectURL(audioBlob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `meeting_recording_${meetingId}_${new Date().toISOString().slice(0, 10)}.${detectedExt}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => {
+        try {
+          URL.revokeObjectURL(downloadUrl);
+        } catch {
+          // ignore
+        }
+      }, 5000);
+    } catch (err) {
+      console.error('Failed to trigger audio backup download:', err);
     }
   };
 
@@ -470,6 +592,32 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 space-y-4 shadow-xs">
+      {/* Unsaved Recording Auto-Recovered Notification */}
+      {recoveredFromStorage && (
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-blue-600 mt-0.5" />
+          <div className="space-y-0.5">
+            <p className="font-semibold">Unsaved Meeting Audio Recovered</p>
+            <p className="text-[11px] text-blue-700">
+              We recovered your recorded meeting from your browser's offline storage. You can now upload it to generate MOM or download a local copy to your phone.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Offline Alert Banner */}
+      {!isOnline && (
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs">
+          <WifiOff className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+          <div className="space-y-0.5">
+            <p className="font-semibold">Device is Offline</p>
+            <p className="text-[11px] text-amber-800">
+              You are currently disconnected from the internet. Your recording is safely saved on this device. When reconnected, tap "Upload & Generate MOM", or download an audio copy below.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Permission or device error banner */}
       {permissionError && (
         <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
@@ -520,7 +668,7 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
       {(recordingState === 'recording' || recordingState === 'paused') && (
         <div className="flex flex-col items-center justify-center py-6 text-center space-y-5">
           {/* Status badge */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             {recordingState === 'recording' ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping shrink-0" />
@@ -530,6 +678,12 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300">
                 <Pause className="w-3 h-3 text-amber-600 fill-amber-600" />
                 Recording Paused
+              </span>
+            )}
+            {!isOnline && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                <WifiOff className="w-3 h-3 text-amber-500 shrink-0" />
+                Offline Mode (Mic active)
               </span>
             )}
           </div>
@@ -613,6 +767,10 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
                 <p className="text-[11px] text-slate-500 font-mono tabular-nums">
                   Duration: {formatTime(duration)} · Size: {formatFileSize(audioBlob.size)} ({detectedExt.toUpperCase()})
                 </p>
+                <div className="flex items-center gap-1 mt-1 text-[11px] text-emerald-700 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Auto-saved to device offline storage</span>
+                </div>
               </div>
             </div>
             {audioUrl && (
@@ -620,7 +778,7 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
             )}
           </div>
 
-          <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <Button
               type="button"
               variant="secondary"
@@ -632,18 +790,34 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
             >
               Discard & Re-record
             </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="md"
-              loading={isSubmitting}
-              onClick={handleUploadAndGenerate}
-              icon={Upload}
-              disabled={disabled || isSubmitting}
-              className="w-full sm:w-auto shadow-md shadow-cyan-500/15"
-            >
-              Upload & Generate MOM
-            </Button>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                onClick={handleDownloadAudioBackup}
+                icon={Download}
+                disabled={disabled || isSubmitting}
+                className="w-full sm:w-auto"
+                title="Download audio recording directly to your phone storage"
+              >
+                Download Audio Backup
+              </Button>
+
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                loading={isSubmitting}
+                onClick={handleUploadAndGenerate}
+                icon={Upload}
+                disabled={disabled || isSubmitting || !isOnline}
+                className="w-full sm:w-auto shadow-md shadow-cyan-500/15"
+              >
+                {isOnline ? 'Upload & Generate MOM' : 'Waiting for Internet...'}
+              </Button>
+            </div>
           </div>
         </div>
       )}

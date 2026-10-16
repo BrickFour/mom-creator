@@ -429,6 +429,7 @@ export function MeetingDetailPage({
             <>
               {meeting.mode === 'mic_recording' && (
                 <BrowserRecorder
+                  meetingId={meeting.id}
                   onRecordingComplete={(blob, name) => processRecordingFile(blob, name, 'audio')}
                 />
               )}
