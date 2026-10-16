@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext.jsx';
-import SamvadiniLogo from '../assets/Samvadini-logo.png';
+import SamvadiniLogo from '../assets/samvadini-logo.png';
 
 function navigateTo(path) {
   window.history.pushState({}, '', path);
