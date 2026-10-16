@@ -31,7 +31,7 @@ export async function runProcessingJob(jobId) {
   });
 }
 
-export async function pollProcessingJob(jobId, { onUpdate, intervalMs = 2000, maxAttempts = 150 } = {}) {
+export async function pollProcessingJob(jobId, { onUpdate, intervalMs = 2500, maxAttempts = 360 } = {}) {
   let attempts = 0;
 
   while (attempts < maxAttempts) {

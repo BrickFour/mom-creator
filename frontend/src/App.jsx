@@ -33,9 +33,17 @@ import TermsOfServicePage from './pages/TermsOfServicePage.jsx';
 function MainApp() {
   const { session, loading: authLoading } = useAuth();
 
-  const [currentPath, setCurrentPath] = useState(
-    () => window.location.pathname || '/dashboard'
-  );
+  const [currentPath, setCurrentPath] = useState(() => {
+    // Detect if arriving from Supabase password recovery email link
+    const isRecovery =
+      window.location.hash.includes('type=recovery') ||
+      window.location.search.includes('type=recovery') ||
+      window.location.pathname === '/reset-password';
+    if (isRecovery) {
+      return '/reset-password';
+    }
+    return window.location.pathname || '/dashboard';
+  });
 
   const [createMeetingOpen, setCreateMeetingOpen] = useState(false);
 
@@ -44,8 +52,12 @@ function MainApp() {
    */
   useEffect(() => {
     const handlePopState = () => {
+      const isRecovery =
+        window.location.hash.includes('type=recovery') ||
+        window.location.search.includes('type=recovery') ||
+        window.location.pathname === '/reset-password';
       setCurrentPath(
-        window.location.pathname || '/dashboard'
+        isRecovery ? '/reset-password' : (window.location.pathname || '/dashboard')
       );
     };
 
