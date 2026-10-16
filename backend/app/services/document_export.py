@@ -26,9 +26,10 @@ def safe_filename(value: str | None, fallback: str = "mom") -> str:
     return value[:80] or fallback
 
 
-def format_datetime(value: Any) -> str:
+def format_datetime(value: Any, tz: Any = None) -> str:
     if not value:
         return "Not specified"
+    target_tz = tz or IST
     if isinstance(value, datetime):
         dt = value
     else:
@@ -36,14 +37,16 @@ def format_datetime(value: Any) -> str:
             dt = datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
         except ValueError:
             return str(value)
-    if dt.tzinfo is not None:
-        dt = dt.astimezone(IST)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    dt = dt.astimezone(target_tz)
     return dt.strftime("%d %b %Y, %I:%M %p").lstrip("0")
 
 
-def format_date_only(value: Any) -> str:
+def format_date_only(value: Any, tz: Any = None) -> str:
     if not value:
         return "No due date"
+    target_tz = tz or IST
     if isinstance(value, datetime):
         dt = value
     else:
@@ -51,8 +54,9 @@ def format_date_only(value: Any) -> str:
             dt = datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
         except ValueError:
             return str(value)
-    if dt.tzinfo is not None:
-        dt = dt.astimezone(IST)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    dt = dt.astimezone(target_tz)
     return dt.strftime("%d %b %Y")
 
 

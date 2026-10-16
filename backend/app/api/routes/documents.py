@@ -252,6 +252,8 @@ def _load_export_data(
 )
 async def export_pdf(
     meeting_id: str,
+    tz: str | None = None,
+    client_time: str | None = None,
     supabase: Client = Depends(
         get_supabase
     ),
@@ -269,6 +271,8 @@ async def export_pdf(
         supabase,
         meeting_id,
     )
+    payload["target_timezone"] = tz
+    payload["client_time"] = client_time
 
     try:
 
