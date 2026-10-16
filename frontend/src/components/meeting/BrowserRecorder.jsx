@@ -28,10 +28,12 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
   const [permissionError, setPermissionError] = useState('');
   const [interruptedByCall, setInterruptedByCall] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0); // 0 to 100 for live meter
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const mediaStreamRef = useRef(null);
   const chunksRef = useRef([]);
+  const audioUrlRef = useRef(null);
 
   // Timing tracking (wall-clock delta for accurate mobile timers)
   const timerRef = useRef(null);
@@ -137,7 +139,13 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      if (audioUrlRef.current) {
+        try {
+          URL.revokeObjectURL(audioUrlRef.current);
+        } catch {
+          // ignore
+        }
+      }
       releaseWakeLock();
       stopBackgroundAudioSession();
 
@@ -153,7 +161,7 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
         mediaStreamRef.current.getTracks().forEach((t) => t.stop());
       }
     };
-  }, [audioUrl]);
+  }, []);
 
   // Live audio level visualizer
   const setupAudioVisualizer = (stream) => {
@@ -281,7 +289,15 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
         const finalType = mimeType || mediaRecorder.mimeType || 'audio/webm';
         const blob = new Blob(chunksRef.current, { type: finalType });
         setAudioBlob(blob);
+        if (audioUrlRef.current) {
+          try {
+            URL.revokeObjectURL(audioUrlRef.current);
+          } catch {
+            // ignore
+          }
+        }
         const url = URL.createObjectURL(blob);
+        audioUrlRef.current = url;
         setAudioUrl(url);
         setRecordingState('stopped');
 
@@ -391,7 +407,15 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
   };
 
   const resetRecording = () => {
-    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    if (audioUrlRef.current) {
+      try {
+        URL.revokeObjectURL(audioUrlRef.current);
+      } catch (e) {
+        console.warn('Error revoking audio URL:', e);
+      }
+      audioUrlRef.current = null;
+    }
+    chunksRef.current = [];
     setAudioBlob(null);
     setAudioUrl(null);
     setDuration(0);
@@ -400,6 +424,27 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
     setPermissionError('');
     setInterruptedByCall(false);
     setAudioLevel(0);
+    setIsSubmitting(false);
+
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    releaseWakeLock();
+    stopBackgroundAudioSession();
+  };
+
+  const handleUploadAndGenerate = async () => {
+    if (!audioBlob || isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      setPermissionError('');
+      const fileName = `meeting_rec_${Date.now()}.${detectedExt}`;
+      await onRecordingComplete(audioBlob, fileName);
+    } catch (err) {
+      console.error('Recording upload failed:', err);
+      setPermissionError(err.message || 'Failed to upload recording. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   const formatTime = (secs) => {
@@ -575,27 +620,27 @@ export function BrowserRecorder({ onRecordingComplete, disabled = false }) {
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-3 pt-2">
             <Button
+              type="button"
               variant="secondary"
-              size="sm"
+              size="md"
               onClick={resetRecording}
               icon={RotateCcw}
-              disabled={disabled}
+              disabled={disabled || isSubmitting}
+              className="w-full sm:w-auto"
             >
               Discard & Re-record
             </Button>
             <Button
-              size="sm"
-              onClick={() =>
-                onRecordingComplete(
-                  audioBlob,
-                  `meeting_rec_${Date.now()}.${detectedExt}`
-                )
-              }
+              type="button"
+              variant="primary"
+              size="md"
+              loading={isSubmitting}
+              onClick={handleUploadAndGenerate}
               icon={Upload}
-              disabled={disabled}
-              className="bg-brand-gradient text-white shadow-xs"
+              disabled={disabled || isSubmitting}
+              className="w-full sm:w-auto shadow-md shadow-cyan-500/15"
             >
               Upload & Generate MOM
             </Button>

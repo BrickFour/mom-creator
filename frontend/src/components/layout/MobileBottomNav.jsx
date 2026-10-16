@@ -129,7 +129,7 @@ export function MobileBottomNav({
           >
             <Plus className="w-6 h-6 stroke-[2.5]" />
           </button>
-          <span className="text-[9px] font-semibold text-cyan-300 mt-1">Record</span>
+          <span className="text-[9px] font-semibold text-cyan-300 mt-1">Start Meeting</span>
         </div>
 
         <button

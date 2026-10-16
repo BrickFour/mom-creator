@@ -115,15 +115,24 @@ export function MeetingDetailPage({
 
   // Primary recording upload & full processing pipeline
   const processRecordingFile = async (file, customName, mediaType = null) => {
-    if (!meeting || !currentWorkspace) return;
+    if (!meeting) {
+      showToast('Meeting data not found', 'error');
+      return;
+    }
+
+    const targetWorkspaceId = meeting.workspace_id || currentWorkspace?.id;
+    if (!targetWorkspaceId) {
+      showToast('No active workspace found for this meeting', 'error');
+      return;
+    }
 
     setProcessingError(null);
     setProcessingStage('uploading');
 
     try {
-      const fileName =file?.name || customName || `recording_${Date.now()}.webm`;
-
+      const fileName = file?.name || customName || `recording_${Date.now()}.webm`;
       const extension = fileName.split('.').pop()?.toLowerCase();
+      const fileType = file?.type || '';
 
       const videoExtensions = ['mp4', 'mov', 'm4v'];
       const audioExtensions = ['mp3', 'wav', 'm4a', 'aac'];
@@ -139,18 +148,18 @@ export function MeetingDetailPage({
       } else if (audioExtensions.includes(extension)) {
         bucket = 'meeting-audio';
       } else if (extension === 'webm') {
-        bucket = file.type.startsWith('video/')
+        bucket = fileType.startsWith('video/')
           ? 'meeting-video'
           : 'meeting-audio';
       } else {
-        throw new Error(`Unsupported recording format: .${extension}`);
+        bucket = 'meeting-audio';
       }
 
       // 1. Upload to Supabase Storage
       const uploaded = await uploadToStorage({
         file,
         bucket,
-        workspaceId: meeting.workspace_id,
+        workspaceId: targetWorkspaceId,
         meetingId: meeting.id,
         customFileName: customName,
       });
@@ -189,11 +198,13 @@ export function MeetingDetailPage({
 
       // Reload all meeting data
       await loadAllData();
+      return finishedJob;
     } catch (err) {
       console.error('Processing failed:', err);
       setProcessingStage('failed');
       setProcessingError(err.message || 'Processing encountered an error.');
       showToast(err.message || 'Processing failed', 'error');
+      throw err;
     }
   };
 

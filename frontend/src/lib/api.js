@@ -1,5 +1,6 @@
 import { getApiBaseUrl } from './config.js';
 import { getSupabase } from './supabase.js';
+import { markBackendOnline } from '../services/backendWarmup.js';
 
 export class ApiError extends Error {
   constructor(message, status = 500, data = null, endpoint = '') {
@@ -93,6 +94,9 @@ export async function apiRequest(endpoint, options = {}) {
       cleanEndpoint
     );
   }
+
+  // Server responded without network error, so backend is reachable
+  markBackendOnline();
 
   if (!response.ok) {
     let errorData = null;

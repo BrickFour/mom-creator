@@ -26,7 +26,20 @@ export function subscribeBackendStatus(callback) {
 }
 
 /**
- * Pings the backend health endpoint.
+ * Manually mark backend as online (e.g. when any API request successfully completes)
+ */
+export function markBackendOnline() {
+  if (!status.isOnline || status.isWakingUp || status.isChecking) {
+    status.isOnline = true;
+    status.isWakingUp = false;
+    status.isChecking = false;
+    status.lastChecked = Date.now();
+    notify();
+  }
+}
+
+/**
+ * Pings the backend health endpoint with automatic fallback.
  * Detects if the backend (Render free tier) is hibernating and waking up.
  */
 export async function pingBackend(showWarmupThresholdMs = 2500) {
@@ -46,18 +59,34 @@ export async function pingBackend(showWarmupThresholdMs = 2500) {
 
   try {
     const start = Date.now();
-    const response = await fetch(`${baseUrl}/api/v1/health`, {
-      method: 'GET',
-      signal: controller.signal,
-      cache: 'no-store',
-    });
+    const candidateEndpoints = ['/health', '/api/v1/health', '/'];
+    let isReachable = false;
+    let finalStatus = 0;
+
+    for (const ep of candidateEndpoints) {
+      try {
+        const response = await fetch(`${baseUrl}${ep}`, {
+          method: 'GET',
+          signal: controller.signal,
+          cache: 'no-store',
+        });
+
+        if (response.ok || response.status === 200 || response.status === 401) {
+          isReachable = true;
+          finalStatus = response.status;
+          break;
+        }
+      } catch {
+        // Try next candidate endpoint
+      }
+    }
 
     clearTimeout(warmupTimer);
     clearTimeout(hardTimeout);
 
     const elapsed = Date.now() - start;
 
-    if (response.ok) {
+    if (isReachable) {
       status.isOnline = true;
       status.isWakingUp = false;
       status.isChecking = false;
@@ -69,7 +98,7 @@ export async function pingBackend(showWarmupThresholdMs = 2500) {
       status.isWakingUp = false;
       status.isChecking = false;
       notify();
-      return { ok: false, status: response.status };
+      return { ok: false, status: finalStatus };
     }
   } catch (err) {
     clearTimeout(warmupTimer);
