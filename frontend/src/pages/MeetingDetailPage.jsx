@@ -390,12 +390,19 @@ export function MeetingDetailPage({
                 if (lastUploadedPath) {
                   // Retry transcription
                   setProcessingStage('transcribing');
+                  let txJobId, momJobId;
                   createProcessingJob({ meeting_id: meeting.id, job_type: 'transcription', input_file_path: lastUploadedPath })
-                    .then((j) => runProcessingJob(j.id))
-                    .then(() => pollProcessingJob(meeting.id))
+                    .then((j) => {
+                      txJobId = j.id;
+                      return runProcessingJob(j.id);
+                    })
+                    .then(() => pollProcessingJob(txJobId))
                     .then(() => createProcessingJob({ meeting_id: meeting.id, job_type: 'mom_generation' }))
-                    .then((mj) => runProcessingJob(mj.id))
-                    .then(() => pollProcessingJob(meeting.id))
+                    .then((mj) => {
+                      momJobId = mj.id;
+                      return runProcessingJob(mj.id);
+                    })
+                    .then(() => pollProcessingJob(momJobId))
                     .then(() => {
                       setProcessingStage('completed');
                       loadAllData();
@@ -438,9 +445,13 @@ export function MeetingDetailPage({
                     size="sm"
                     onClick={() => {
                       setProcessingStage('generating_mom');
+                      let genJobId;
                       createProcessingJob({ meeting_id: meeting.id, job_type: 'mom_generation' })
-                        .then((j) => runProcessingJob(j.id))
-                        .then(() => pollProcessingJob(meeting.id))
+                        .then((j) => {
+                          genJobId = j.id;
+                          return runProcessingJob(j.id);
+                        })
+                        .then(() => pollProcessingJob(genJobId))
                         .then(() => {
                           setProcessingStage('completed');
                           loadAllData();
@@ -450,6 +461,7 @@ export function MeetingDetailPage({
                           setProcessingError(err.message);
                         });
                     }}
+
                     icon={Sparkles}
                   >
                     Generate MOM

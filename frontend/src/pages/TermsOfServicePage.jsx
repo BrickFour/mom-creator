@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext.jsx';
-import samvaadLogo from '../assets/samvaad-logo.png';
+import SamvadiniLogo from '../assets/Samvadini-logo.png';
 
 function navigateTo(path) {
   window.history.pushState({}, '', path);
@@ -26,8 +26,8 @@ export function TermsOfServicePage() {
             className="flex items-center transition-opacity hover:opacity-85"
           >
             <img
-              src={samvaadLogo}
-              alt="Samvaad"
+              src={SamvadiniLogo}
+              alt="Samvadini"
               className="h-14 w-auto object-contain"
             />
           </button>
@@ -93,7 +93,7 @@ export function TermsOfServicePage() {
             </h2>
 
             <p className="mt-4">
-              By accessing or using Samvaad, you agree to these Terms of
+              By accessing or using Samvadini, you agree to these Terms of
               Service. If you do not agree with these terms, you should not use
               the service.
             </p>
@@ -106,7 +106,7 @@ export function TermsOfServicePage() {
             </h2>
 
             <p className="mt-4">
-              Samvaad is a meeting management application that provides
+              Samvadini is a meeting management application that provides
               functionality for creating meetings, processing meeting content,
               generating Minutes of Meeting, and managing related action items.
             </p>
@@ -141,7 +141,7 @@ export function TermsOfServicePage() {
             </h2>
 
             <p className="mt-4">
-              Samvaad may provide workspaces that allow multiple users to
+              Samvadini may provide workspaces that allow multiple users to
               collaborate on meetings, Minutes of Meeting, and action items.
             </p>
 
@@ -160,7 +160,7 @@ export function TermsOfServicePage() {
             <p className="mt-4">
               You are responsible for ensuring that you have the necessary
               rights and permissions to record, upload, transcribe, process,
-              and share meeting content through Samvaad.
+              and share meeting content through Samvadini.
             </p>
 
             <p className="mt-4">
@@ -177,7 +177,7 @@ export function TermsOfServicePage() {
             </h2>
 
             <p className="mt-4">
-              Samvaad may use artificial intelligence to generate summaries,
+              Samvadini may use artificial intelligence to generate summaries,
               Minutes of Meeting, discussion points, decisions, and action
               items from meeting content.
             </p>
@@ -195,7 +195,7 @@ export function TermsOfServicePage() {
             </h2>
 
             <p className="mt-4">
-              Samvaad may integrate with third-party services such as Google
+              Samvadini may integrate with third-party services such as Google
               services and other meeting or calendar providers.
             </p>
 
@@ -212,7 +212,7 @@ export function TermsOfServicePage() {
             </h2>
 
             <p className="mt-4">
-              You must not use Samvaad to violate applicable laws or
+              You must not use Samvadini to violate applicable laws or
               regulations, interfere with the service, gain unauthorized access
               to accounts or data, or abuse third-party integrations.
             </p>
@@ -225,7 +225,7 @@ export function TermsOfServicePage() {
             </h2>
 
             <p className="mt-4">
-              The Samvaad application, including its software, interface,
+              The Samvadini application, including its software, interface,
               branding, and associated materials, is protected by applicable
               intellectual-property laws.
             </p>
@@ -244,7 +244,7 @@ export function TermsOfServicePage() {
             </h2>
 
             <p className="mt-4">
-              Samvaad may occasionally be unavailable because of maintenance,
+              Samvadini may occasionally be unavailable because of maintenance,
               infrastructure issues, third-party service interruptions, or
               other circumstances.
             </p>
@@ -262,7 +262,7 @@ export function TermsOfServicePage() {
             </h2>
 
             <p className="mt-4">
-              Access to Samvaad may be suspended or terminated where necessary
+              Access to Samvadini may be suspended or terminated where necessary
               to protect the service, users, third-party systems, or comply
               with applicable requirements.
             </p>
@@ -275,7 +275,7 @@ export function TermsOfServicePage() {
             </h2>
 
             <p className="mt-4">
-              Samvaad provides software tools for meeting management and
+              Samvadini provides software tools for meeting management and
               AI-assisted document generation. The service does not guarantee
               that generated transcripts, summaries, Minutes of Meeting, or
               action items will always be complete or accurate.
@@ -307,7 +307,7 @@ export function TermsOfServicePage() {
 
             <p className="mt-4">
               Questions regarding these Terms of Service can be directed to
-              the Samvaad application operator through the contact information
+              the Samvadini application operator through the contact information
               provided with the service.
             </p>
           </section>
@@ -327,13 +327,13 @@ export function TermsOfServicePage() {
           <div className="flex items-center gap-3">
 
             <img
-              src={samvaadLogo}
-              alt="Samvaad"
+              src={SamvadiniLogo}
+              alt="Samvadini"
               className="h-10 w-auto object-contain"
             />
 
             <p className="text-sm text-slate-500">
-              © {new Date().getFullYear()} Samvaad
+              © {new Date().getFullYear()} Samvadini
             </p>
 
           </div>

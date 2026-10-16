@@ -154,15 +154,17 @@ app.add_middleware(
     allow_origins=[
         settings.frontend_url,
         "http://localhost:5173",
+        "http://localhost:3000",
     ],
     allow_origin_regex=(
-        r"https://mom-creator-[a-z0-9]+-"
-        r"thorataryan0-6927\.vercel\.app"
+        r"^https://[a-zA-Z0-9\-_.]+\.vercel\.app$"
     ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    max_age=86400,
 )
+
 
 
 # ============================================================

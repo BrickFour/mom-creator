@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Mail, ArrowLeft, CheckCircle2, AlertTriangle } from 'lucide-react';
+import samvadiniLogo from '../assets/samvadini-logo.png';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
@@ -35,9 +36,11 @@ export function ForgotPasswordPage({ onNavigateToLogin }) {
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-slate-50">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-10 h-10 rounded-xl bg-brand-gradient text-white font-bold text-lg flex items-center justify-center mx-auto shadow-xs">
-            M
-          </div>
+          <img
+            src={samvadiniLogo}
+            alt="Samvadini"
+            className="w-20 h-20 object-contain mx-auto drop-shadow-sm rounded-2xl"
+          />
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Reset your password
           </h1>
@@ -61,9 +64,10 @@ export function ForgotPasswordPage({ onNavigateToLogin }) {
                 <p className="mt-2 text-sm leading-6 text-slate-500">
                   If an account exists for this email address, a password
                   reset link has been sent. The link will take you back to
-                  Samvaad to choose a new password.
+                  Samvadini to choose a new password.
                 </p>
               </div>
+
 
               <button
                 type="button"

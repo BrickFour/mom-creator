@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { getSupabase } from '../lib/supabase.js';
 import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
+import samvadiniLogo from '../assets/samvadini-logo.png';
 
 export function ResetPasswordPage({ onNavigateToLogin, onNavigateToForgotPassword }) {
   const { updatePassword, configured } = useAuth();
@@ -99,16 +100,19 @@ export function ResetPasswordPage({ onNavigateToLogin, onNavigateToForgotPasswor
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-slate-50">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-10 h-10 rounded-xl bg-brand-gradient text-white font-bold text-lg flex items-center justify-center mx-auto shadow-xs">
-            M
-          </div>
+          <img
+            src={samvadiniLogo}
+            alt="Samvadini"
+            className="w-20 h-20 object-contain mx-auto drop-shadow-sm rounded-2xl"
+          />
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Set a new password
           </h1>
           <p className="text-xs text-slate-500">
-            Choose a new password for your Samvaad account.
+            Choose a new password for your Samvadini account.
           </p>
         </div>
+
 
         <div className="bg-white rounded-xl border border-slate-200 p-6 sm:p-8 shadow-xs">
           {checking ? (

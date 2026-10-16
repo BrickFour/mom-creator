@@ -8,15 +8,19 @@ import {
   Activity,
   ShieldCheck,
   FileText,
+  KeyRound,
+  X,
 } from 'lucide-react';
 import { WorkspaceSelector } from '../workspace/WorkspaceSelector.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
-import samvaadLogo from "../../assets/samvaad-logo.png";
+import samvadiniLogo from "../../assets/samvadini-logo.png";
+
 export function Sidebar({
   currentPath,
   onNavigate,
   onOpenCreateWorkspace,
   onOpenWorkspaceSettings,
+  onOpenChangePassword,
   isMobile = false,
   onCloseMobile,
 }) {
@@ -40,18 +44,39 @@ export function Sidebar({
   };
 
   return (
-    <aside className="w-64 h-full flex flex-col bg-white border-r border-slate-200 select-none">
+    <aside className="w-64 h-full flex flex-col bg-gradient-to-b from-[#07162c] via-[#091a35] to-[#061224] border-r border-blue-900/50 text-slate-300 select-none shadow-xl">
       {/* Brand Zone */}
-      <div className="h-14 px-8 flex items-center border-b border-slate-100">
-        <img
-          src={samvaadLogo}
-          alt="Samvaad"
-          className="h-12 w-auto object-contain"
-        />
+      <div className="h-16 px-4 flex items-center justify-between border-b border-blue-900/40">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <img
+            src={samvadiniLogo}
+            alt="Samvadini"
+            className="h-10 w-10 object-contain rounded-xl shrink-0 drop-shadow-sm bg-white/5 p-0.5"
+          />
+          <div className="min-w-0">
+            <span className="text-sm font-extrabold tracking-wide text-white block leading-tight">
+              SAMVADINI
+            </span>
+            <span className="text-[9px] font-bold tracking-wider text-cyan-400 uppercase block">
+              MOM CREATOR
+            </span>
+          </div>
+        </div>
+
+        {isMobile && onCloseMobile && (
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Workspace Selector */}
-      <div className="p-3 border-b border-slate-100">
+      <div className="p-3 border-b border-blue-900/40">
         <WorkspaceSelector
           onOpenCreate={onOpenCreateWorkspace}
           onOpenSettings={onOpenWorkspaceSettings}
@@ -60,24 +85,30 @@ export function Sidebar({
 
       {/* Primary Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+        <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-blue-300/60">
           Menu
         </div>
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path));
+          const isActive =
+            currentPath === item.path ||
+            (item.path !== '/dashboard' && currentPath.startsWith(item.path));
           return (
             <button
               key={item.path}
               type="button"
               onClick={() => handleNav(item.path)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer text-left ${
                 isActive
-                  ? 'bg-indigo-50 text-indigo-700 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold shadow-md shadow-cyan-500/15'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-gradient' : 'text-slate-400'}`} />
+              <Icon
+                className={`w-4 h-4 shrink-0 ${
+                  isActive ? 'text-white' : 'text-slate-400'
+                }`}
+              />
               <span>{item.label}</span>
             </button>
           );
@@ -85,30 +116,48 @@ export function Sidebar({
       </nav>
 
       {/* User profile & actions */}
-      <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+      <div className="p-3 border-t border-blue-900/40 bg-[#050f21]/80">
         <div className="flex items-center justify-between gap-2 px-2 py-1.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold text-xs shrink-0">
-              {profile?.name ? profile.name[0].toUpperCase() : user?.email ? user.email[0].toUpperCase() : 'U'}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              {profile?.name
+                ? profile.name[0].toUpperCase()
+                : user?.email
+                ? user.email[0].toUpperCase()
+                : 'U'}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-slate-800 truncate">
+              <p className="text-xs font-semibold text-white truncate">
                 {profile?.name || user?.email?.split('@')[0] || 'User'}
               </p>
-              <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
+              <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={signOut}
-            title="Sign out"
-            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors cursor-pointer shrink-0"
-            aria-label="Sign out"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            {onOpenChangePassword && (
+              <button
+                type="button"
+                onClick={onOpenChangePassword}
+                title="Change password"
+                className="p-1.5 text-slate-400 hover:text-cyan-300 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                aria-label="Change password"
+              >
+                <KeyRound className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={signOut}
+              title="Sign out"
+              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+              aria-label="Sign out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </aside>
   );
 }
+

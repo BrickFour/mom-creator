@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
 import { Lock, Mail, User, CheckCircle2, ArrowRight } from 'lucide-react';
+import samvadiniLogo from '../assets/samvadini-logo.png';
 
 export function RegisterPage({ onNavigateToLogin }) {
   const { signUp } = useAuth();
@@ -41,16 +42,19 @@ export function RegisterPage({ onNavigateToLogin }) {
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-slate-50 selection:bg-indigo-100">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-10 h-10 rounded-xl bg-brand-gradient text-white font-bold text-lg flex items-center justify-center mx-auto shadow-xs">
-            M
-          </div>
+          <img
+            src={samvadiniLogo}
+            alt="Samvadini"
+            className="w-20 h-20 object-contain mx-auto drop-shadow-sm rounded-2xl"
+          />
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Create Your Account
           </h1>
           <p className="text-xs text-slate-500">
-            Get started with AI-generated Minutes of Meeting and task tracking.
+            Get started with Samvadini for automated Minutes of Meeting and task tracking.
           </p>
         </div>
+
 
         <div className="bg-white rounded-xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
           {emailConfirmationRequired ? (

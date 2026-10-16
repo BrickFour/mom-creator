@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext.jsx';
-import samvaadLogo from '../assets/samvaad-logo.png';
+import SamvadiniLogo from '../assets/Samvadini-logo.png';
 
 function navigateTo(path) {
   window.history.pushState({}, '', path);
@@ -28,8 +28,8 @@ export function PublicHomePage() {
             className="flex items-center transition-opacity hover:opacity-85"
           >
             <img
-              src={samvaadLogo}
-              alt="Samvaad"
+              src={SamvadiniLogo}
+              alt="Samvadini"
               className="h-14 w-auto object-contain"
             />
           </button>
@@ -193,7 +193,7 @@ export function PublicHomePage() {
               {/* Description */}
 
               <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
-                Samvaad helps teams capture meeting information, process
+                Samvadini helps teams capture meeting information, process
                 recordings and transcripts, generate professional Minutes of
                 Meeting, and organize follow-up action items.
               </p>
@@ -470,7 +470,7 @@ export function PublicHomePage() {
               </h2>
 
               <p className="mt-4 leading-7 text-slate-600">
-                Samvaad can integrate with Google services to support meeting
+                Samvadini can integrate with Google services to support meeting
                 workflows and calendar-related functionality. Google user
                 data is handled according to Google's API Services User Data
                 Policy, including the Limited Use requirements where
@@ -518,7 +518,7 @@ export function PublicHomePage() {
 
                   <p className="mt-2 max-w-xl text-sm leading-6 text-white/80">
                     Start organizing your meetings, Minutes of Meeting, and
-                    action items with Samvaad.
+                    action items with Samvadini.
                   </p>
 
                 </div>
@@ -566,13 +566,13 @@ export function PublicHomePage() {
           <div className="flex items-center gap-3">
 
             <img
-              src={samvaadLogo}
-              alt="Samvaad"
+              src={SamvadiniLogo}
+              alt="Samvadini"
               className="h-10 w-auto object-contain"
             />
 
             <p className="text-sm text-slate-500">
-              © {new Date().getFullYear()} Samvaad
+              © {new Date().getFullYear()} Samvadini
             </p>
 
           </div>

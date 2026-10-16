@@ -43,7 +43,7 @@ MOM_RESPONSE_SCHEMA = {
         },
         "summary": {
             "type": "STRING",
-            "description": "Concise summary of the current meeting.",
+            "description": "Comprehensive summary of the current meeting, proportional in depth and length to the transcript.",
         },
         "key_discussion_points": {
             "type": "ARRAY",
@@ -372,7 +372,7 @@ async def call_llm(
             "responseMimeType": "application/json",
             "responseJsonSchema": MOM_RESPONSE_SCHEMA,
             "temperature": 0.2,
-            "maxOutputTokens": 4096,
+            "maxOutputTokens": 8192,
         },
     }
 
@@ -690,6 +690,45 @@ def build_mom_prompt(
         else "No supporting context was provided."
     )
 
+    transcript_word_count = len(transcript.split())
+    if transcript_word_count > 6000:
+        # Long meeting: ~1 to 5+ hours of speaking
+        summary_instructions = f"""
+2. summary
+   COMPREHENSIVE MULTI-PARAGRAPH EXECUTIVE SUMMARY:
+   This meeting contains an extensive transcript (~{transcript_word_count} words, spanning multiple hours of discussion). The summary MUST scale proportionally and be rich, exhaustive, and structured into at least 4 to 6 detailed paragraphs:
+   - Paragraph 1: Executive Overview, Context & Primary Objectives.
+   - Paragraph 2-3: Core Agenda Topics, Deliberations & Debated Perspectives (cover varying opinions, alternatives evaluated, and rationale for conclusions).
+   - Paragraph 4: Major Strategic, Technical & Operational Decisions reached, including consensus and trade-offs.
+   - Paragraph 5-6: Implementation Roadmap, Long-term Strategic Trajectory, and Next Milestones.
+   Do NOT provide a short 2-3 sentence overview. Give full justice to the length and depth of the discussion.
+
+3. key_discussion_points
+   EXHAUSTIVE DISCUSSION POINTS:
+   Provide 10 to 25 detailed, contextual discussion points capturing all distinct topics, deliberations, and considerations across the meeting.
+"""
+    elif transcript_word_count > 1500:
+        # Medium meeting: ~15 to 45 mins
+        summary_instructions = f"""
+2. summary
+   STRUCTURED EXECUTIVE SUMMARY:
+   Provide an in-depth summary of 3 to 4 comprehensive paragraphs covering meeting context, key agenda debates, decisions taken, and strategic impact. Proportional to the ~{transcript_word_count}-word transcript.
+
+3. key_discussion_points
+   Provide 6 to 12 substantive, detailed discussion points covering all key topics addressed.
+"""
+    else:
+        # Short meeting: < 15 mins
+        summary_instructions = """
+2. summary
+   FOCUSED EXECUTIVE SUMMARY:
+   Provide a concise 1 to 2 paragraph summary capturing the meeting purpose, key topics, and direct outcomes.
+
+3. key_discussion_points
+   Provide 3 to 6 focused discussion points capturing the essential topics covered.
+"""
+
+
     example = {
         "title": "Example meeting title",
         "summary": "Example meeting summary",
@@ -803,11 +842,7 @@ Generate:
 1. title
    A concise title for this meeting.
 
-2. summary
-   A concise summary of what happened in the current meeting.
-
-3. key_discussion_points
-   Important topics actually discussed in the current meeting.
+{summary_instructions}
 
 4. decisions
    Decisions actually made during the current meeting.

@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext.jsx';
-import samvaadLogo from '../assets/samvaad-logo.png';
+import SamvadiniLogo from '../assets/Samvadini-logo.png';
 
 function navigateTo(path) {
   window.history.pushState({}, '', path);
@@ -26,8 +26,8 @@ export function PrivacyPolicyPage() {
             className="flex items-center transition-opacity hover:opacity-85"
           >
             <img
-              src={samvaadLogo}
-              alt="Samvaad"
+              src={SamvadiniLogo}
+              alt="Samvadini"
               className="h-14 w-auto object-contain"
             />
           </button>
@@ -89,14 +89,14 @@ export function PrivacyPolicyPage() {
             </h2>
 
             <p className="mt-4">
-              Samvaad is a meeting management application designed to help
+              Samvadini is a meeting management application designed to help
               users capture meeting information, process meeting recordings
               and transcripts, generate Minutes of Meeting, and manage action
               items.
             </p>
 
             <p className="mt-4">
-              This Privacy Policy explains what information Samvaad processes,
+              This Privacy Policy explains what information Samvadini processes,
               how that information is used, and how users can manage their
               information.
             </p>
@@ -109,7 +109,7 @@ export function PrivacyPolicyPage() {
             </h2>
 
             <p className="mt-4">
-              Depending on how you use Samvaad, the service may process:
+              Depending on how you use Samvadini, the service may process:
             </p>
 
             <ul className="mt-4 list-disc space-y-2 pl-6">
@@ -134,7 +134,7 @@ export function PrivacyPolicyPage() {
             </h2>
 
             <p className="mt-4">
-              If you connect a Google account, Samvaad may request access to
+              If you connect a Google account, Samvadini may request access to
               Google services required to provide its integration features.
               Depending on the enabled functionality, this may include Google
               Meet and Google Calendar data.
@@ -155,7 +155,7 @@ export function PrivacyPolicyPage() {
             </h2>
 
             <p className="mt-4">
-              Google data accessed through Samvaad may be used to support
+              Google data accessed through Samvadini may be used to support
               meeting creation, meeting-related workflows, calendar events,
               and other integration functionality explicitly provided by the
               application.
@@ -163,7 +163,7 @@ export function PrivacyPolicyPage() {
 
             <p className="mt-4">
               Google data is not used for advertising or sold to third parties.
-              Samvaad does not use Google user data for purposes unrelated to
+              Samvadini does not use Google user data for purposes unrelated to
               the functionality of the connected integration.
             </p>
           </section>
@@ -175,7 +175,7 @@ export function PrivacyPolicyPage() {
             </h2>
 
             <p className="mt-4">
-              When you authorize Google integration, Samvaad stores the
+              When you authorize Google integration, Samvadini stores the
               credentials necessary to maintain the connection. OAuth refresh
               tokens are encrypted before being stored by the application.
             </p>
@@ -216,14 +216,14 @@ export function PrivacyPolicyPage() {
             </h2>
 
             <p className="mt-4">
-              Samvaad may use third-party infrastructure and services to
+              Samvadini may use third-party infrastructure and services to
               provide authentication, database storage, file storage, AI
               processing, communication, and external integrations.
             </p>
 
             <p className="mt-4">
               Information may be processed by these providers only as required
-              to provide the corresponding functionality of Samvaad.
+              to provide the corresponding functionality of Samvadini.
             </p>
           </section>
 
@@ -234,7 +234,7 @@ export function PrivacyPolicyPage() {
             </h2>
 
             <p className="mt-4">
-              Samvaad uses security controls intended to protect account
+              Samvadini uses security controls intended to protect account
               information, application data, and integration credentials.
               These controls include authenticated access, database access
               policies, encrypted OAuth credentials, and HTTPS for production
@@ -272,9 +272,9 @@ export function PrivacyPolicyPage() {
             </h2>
 
             <p className="mt-4">
-              Users may disconnect their Google account from Samvaad using the
+              Users may disconnect their Google account from Samvadini using the
               application's Google integration controls where available.
-              Disconnecting the integration prevents Samvaad from using the
+              Disconnecting the integration prevents Samvadini from using the
               stored Google authorization to make further API requests.
             </p>
           </section>
@@ -299,7 +299,7 @@ export function PrivacyPolicyPage() {
             </h2>
 
             <p className="mt-4">
-              For privacy-related questions or requests, contact the Samvaad
+              For privacy-related questions or requests, contact the Samvadini
               application operator through the contact information provided
               with the service.
             </p>
@@ -320,13 +320,13 @@ export function PrivacyPolicyPage() {
           <div className="flex items-center gap-3">
 
             <img
-              src={samvaadLogo}
-              alt="Samvaad"
+              src={SamvadiniLogo}
+              alt="Samvadini"
               className="h-10 w-auto object-contain"
             />
 
             <p className="text-sm text-slate-500">
-              © {new Date().getFullYear()} Samvaad
+              © {new Date().getFullYear()} Samvadini
             </p>
 
           </div>

@@ -135,7 +135,7 @@ export function IntegrationsPage() {
                   <h3 className="text-base font-semibold text-slate-900">Fireflies.ai</h3>
                   {isFirefliesConnected && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md"><CheckCircle2 className="w-3.5 h-3.5" />Connected</span>}
                 </div>
-                <p className="text-xs text-slate-500 max-w-xl leading-relaxed">Import your Fireflies transcripts into this workspace. Samvaad checks connected workspaces approximately once per hour, and you can also refresh manually from the dashboard when the hourly limit allows it.</p>
+                <p className="text-xs text-slate-500 max-w-xl leading-relaxed">Import your Fireflies transcripts into this workspace. Samvadini checks connected workspaces approximately once per hour, and you can also refresh manually from the dashboard when the hourly limit allows it.</p>
                 {isFirefliesConnected && firefliesStatus?.fireflies_user_email && (
                   <p className="text-[11px] text-slate-400">
                     Connected account: {firefliesStatus.fireflies_user_email}

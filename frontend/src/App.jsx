@@ -84,7 +84,7 @@ function MainApp() {
           </div>
 
           <p className="text-xs font-medium text-slate-500">
-            Loading Samvaad...
+            Loading Samvadini...
           </p>
         </div>
       </div>

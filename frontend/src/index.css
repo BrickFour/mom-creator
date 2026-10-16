@@ -32,9 +32,14 @@
      BRAND COLORS
      ======================================================= */
 
+  --color-brand-navy: #071730;
+  --color-brand-midnight: #050f21;
   --color-brand-blue: #023b77;
+  --color-brand-royal: #0066ff;
+  --color-brand-cyan: #00d2ff;
   --color-brand-teal: #039583;
 }
+
 
 
 /* =========================================================
@@ -149,7 +154,7 @@ h6 {
  * This class is retained for compatibility with existing
  * components that may still reference .brand-font.
  *
- * Use the Samvaad PNG logo instead of this for branding.
+ * Use the Samvadini PNG logo instead of this for branding.
  */
 
 .brand-font {
@@ -165,16 +170,18 @@ h6 {
 .brand-gradient {
   background: linear-gradient(
     135deg,
-    #023b77 0%,
-    #039583 100%
+    #0047ab 0%,
+    #0077ff 50%,
+    #00d2ff 100%
   );
 }
 
 .brand-gradient-text {
   background: linear-gradient(
     135deg,
-    #023b77 0%,
-    #039583 100%
+    #0047ab 0%,
+    #0077ff 50%,
+    #00d2ff 100%
   );
 
   -webkit-background-clip: text;
@@ -182,6 +189,7 @@ h6 {
 
   color: transparent;
 }
+
 
 
 /* =========================================================
