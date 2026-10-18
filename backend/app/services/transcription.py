@@ -3,6 +3,7 @@ import os
 import subprocess
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+import imageio_ffmpeg
 
 from google import genai
 from supabase import Client
@@ -306,7 +307,7 @@ async def extract_audio_from_video(
     def run_ffmpeg() -> None:
         result = subprocess.run(
             [
-                "ffmpeg",
+                imageio_ffmpeg.get_ffmpeg_exe(),
                 "-y",
                 "-i",
                 str(video),
