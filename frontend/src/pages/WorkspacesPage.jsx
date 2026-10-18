@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Building2, Plus, Settings } from 'lucide-react';
+import { Building2, Plus, Settings, Users } from 'lucide-react';
 
 import { Button } from '../components/common/Button.jsx';
 import { CreateWorkspaceModal } from '../components/workspace/CreateWorkspaceModal.jsx';
@@ -23,11 +23,20 @@ export function WorkspacesPage({ onNavigate }) {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
-  const [isOwner, setIsOwner] = useState(false);
-  const [checkingOwner, setCheckingOwner] = useState(true);
+  const initialIsOwner = Boolean(
+    currentWorkspace?.created_by && user?.id && currentWorkspace.created_by === user.id
+  );
+  const [isOwner, setIsOwner] = useState(initialIsOwner);
+  const [checkingOwner, setCheckingOwner] = useState(!initialIsOwner);
 
   useEffect(() => {
     let cancelled = false;
+
+    if (currentWorkspace?.created_by && user?.id && currentWorkspace.created_by === user.id) {
+      setIsOwner(true);
+      setCheckingOwner(false);
+      return;
+    }
 
     const checkOwner = async () => {
       if (!currentWorkspace?.id || !user?.id) {
@@ -198,13 +207,14 @@ export function WorkspacesPage({ onNavigate }) {
         <>
           <WorkspaceMembers />
 
-          <button
+          <Button
             type="button"
             onClick={() => onNavigate?.('/members')}
-            className="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-brand-gradient text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
+            icon={Users}
+            className="mt-4"
           >
             Manage Members
-          </button>
+          </Button>
         </>
       )}
 

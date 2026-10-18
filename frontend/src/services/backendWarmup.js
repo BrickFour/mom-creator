@@ -39,14 +39,14 @@ export function markBackendOnline() {
 }
 
 /**
- * Pings the backend health endpoint with automatic fallback.
- * Detects if the backend (Render free tier) is hibernating and waking up.
+ * Pings the backend health endpoint.
+ * Detects if the backend serverless instance is initializing.
  */
-export async function pingBackend(showWarmupThresholdMs = 2500) {
+export async function pingBackend(showWarmupThresholdMs = 4500) {
   const baseUrl = getApiBaseUrl();
   status.isChecking = true;
 
-  // If the health check takes longer than 2.5s, it is almost certainly a Render cold start
+  // If initial ping takes longer than threshold, notify UI of cold-start warmup
   const warmupTimer = setTimeout(() => {
     if (status.isChecking) {
       status.isWakingUp = true;
@@ -55,29 +55,39 @@ export async function pingBackend(showWarmupThresholdMs = 2500) {
   }, showWarmupThresholdMs);
 
   const controller = new AbortController();
-  const hardTimeout = setTimeout(() => controller.abort(), 90000); // Render cold start can take up to 75-90s
+  const hardTimeout = setTimeout(() => controller.abort(), 10000); // Fast 10s max timeout for serverless
 
   try {
     const start = Date.now();
-    const candidateEndpoints = ['/health', '/api/v1/health', '/'];
     let isReachable = false;
     let finalStatus = 0;
 
-    for (const ep of candidateEndpoints) {
+    try {
+      const response = await fetch(`${baseUrl}/health`, {
+        method: 'GET',
+        signal: controller.signal,
+        cache: 'no-store',
+      });
+
+      if (response.ok || response.status === 200 || response.status === 401) {
+        isReachable = true;
+        finalStatus = response.status;
+      }
+    } catch {
+      // Fallback ping to root /
       try {
-        const response = await fetch(`${baseUrl}${ep}`, {
+        const rootResponse = await fetch(`${baseUrl}/`, {
           method: 'GET',
           signal: controller.signal,
           cache: 'no-store',
         });
 
-        if (response.ok || response.status === 200 || response.status === 401) {
+        if (rootResponse.ok || rootResponse.status === 200 || rootResponse.status === 401) {
           isReachable = true;
-          finalStatus = response.status;
-          break;
+          finalStatus = rootResponse.status;
         }
       } catch {
-        // Try next candidate endpoint
+        // Unreachable
       }
     }
 

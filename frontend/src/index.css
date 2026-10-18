@@ -167,7 +167,8 @@ h6 {
    BRAND GRADIENT
    ========================================================= */
 
-.brand-gradient {
+.brand-gradient,
+.bg-brand-gradient {
   background: linear-gradient(
     135deg,
     #0047ab 0%,
@@ -176,7 +177,8 @@ h6 {
   );
 }
 
-.brand-gradient-text {
+.brand-gradient-text,
+.text-brand-gradient {
   background: linear-gradient(
     135deg,
     #0047ab 0%,

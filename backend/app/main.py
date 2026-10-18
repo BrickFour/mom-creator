@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -116,22 +117,26 @@ async def fireflies_scheduler():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    is_vercel = os.environ.get("VERCEL") == "1" or os.environ.get("VERCEL_ENV") is not None
 
-    task = asyncio.create_task(
-        fireflies_scheduler()
-    )
+    task = None
+    if not is_vercel:
+        task = asyncio.create_task(
+            fireflies_scheduler()
+        )
+    else:
+        logger.info("Running in Vercel serverless mode; background scheduler loop disabled.")
 
     try:
         yield
 
     finally:
-
-        task.cancel()
-
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
+        if task:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
 
 
 # ============================================================

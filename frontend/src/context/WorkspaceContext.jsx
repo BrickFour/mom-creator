@@ -8,7 +8,14 @@ export function WorkspaceProvider({ children }) {
   const { session } = useAuth();
 
   const [workspaces, setWorkspaces] = useState([]);
-  const [currentWorkspace, setCurrentWorkspaceState] = useState(null);
+  const [currentWorkspace, setCurrentWorkspaceState] = useState(() => {
+    try {
+      const cached = localStorage.getItem('mom_cached_active_workspace');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [error, setError] = useState(null);
@@ -18,8 +25,14 @@ export function WorkspaceProvider({ children }) {
 
     if (ws?.id) {
       localStorage.setItem('mom_active_workspace_id', ws.id);
+      try {
+        localStorage.setItem('mom_cached_active_workspace', JSON.stringify(ws));
+      } catch {
+        // Ignore storage quota errors
+      }
     } else {
       localStorage.removeItem('mom_active_workspace_id');
+      localStorage.removeItem('mom_cached_active_workspace');
     }
   }, []);
 
@@ -27,6 +40,7 @@ export function WorkspaceProvider({ children }) {
     if (!session) {
       setWorkspaces([]);
       setCurrentWorkspaceState(null);
+      localStorage.removeItem('mom_cached_active_workspace');
       setInitialized(true);
       return;
     }

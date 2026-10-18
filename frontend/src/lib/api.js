@@ -80,19 +80,39 @@ export async function apiRequest(endpoint, options = {}) {
 
   const responseType = options.responseType || 'json';
 
+  const timeoutMs = options.timeout ?? 45000;
+  const controller = new AbortController();
+  const timer = timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null;
+
+  if (options.signal) {
+    options.signal.addEventListener('abort', () => controller.abort());
+  }
+
   let response;
   try {
     response = await fetch(url, {
       ...options,
       headers,
+      signal: controller.signal,
     });
   } catch (networkError) {
+    clearTimeout(timer);
+    if (networkError.name === 'AbortError') {
+      throw new ApiError(
+        `Request to ${cleanEndpoint} timed out after ${timeoutMs / 1000}s.`,
+        408,
+        null,
+        cleanEndpoint
+      );
+    }
     throw new ApiError(
       `Network error connecting to backend at ${baseUrl}. Ensure FastAPI is running.`,
       0,
       null,
       cleanEndpoint
     );
+  } finally {
+    clearTimeout(timer);
   }
 
   // Server responded without network error, so backend is reachable

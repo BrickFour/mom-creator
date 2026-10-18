@@ -37,7 +37,7 @@ export function BackendStatusBanner() {
         <div className="flex items-center gap-2 max-w-4xl mx-auto">
           <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-amber-100" />
           <span>
-            <strong>Backend Waking Up:</strong> The server on Render is spinning up from idle state. First request may take 30–50 seconds.
+            <strong>Connecting to Backend:</strong> Server is initializing. Requests will complete shortly.
           </span>
         </div>
       </div>
@@ -58,7 +58,7 @@ export function BackendStatusBanner() {
       <div className="bg-rose-600 text-white px-4 py-2 text-xs font-medium flex items-center justify-between shadow-xs transition-all animate-in slide-in-from-top duration-200 z-50">
         <div className="flex items-center gap-2">
           <AlertCircle className="w-3.5 h-3.5 text-rose-200 shrink-0" />
-          <span>Cannot reach API server. Ensure Render service is deployed and active.</span>
+          <span>Cannot reach API server. Ensure backend service is deployed and active.</span>
         </div>
         <div className="flex items-center gap-3 shrink-0 ml-4">
           <button
