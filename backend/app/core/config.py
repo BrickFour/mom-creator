@@ -18,9 +18,9 @@ class Settings(BaseSettings):
     # GEMINI
     # ============================================================
 
-    ai_api_key: str
-    ai_base_url: str
-    ai_model: str
+    ai_api_key: str = ""
+    ai_base_url: str = ""
+    ai_model: str = "gemini-3.5-flash-lite"
 
 
     # ============================================================

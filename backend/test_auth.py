@@ -1,3 +1,4 @@
+import os
 from supabase import create_client
 from app.core.config import settings
 
@@ -6,8 +7,12 @@ supabase = create_client(
     settings.supabase_anon_key,
 )
 
-email = "thorataryan0@gmail.com"
-password = "Aryanthorat@1234#"
+email = os.environ.get("TEST_USER_EMAIL", "test@example.com")
+password = os.environ.get("TEST_USER_PASSWORD", "")
+
+if not password:
+    print("Set TEST_USER_EMAIL and TEST_USER_PASSWORD to run test_auth.py")
+    exit(0)
 
 response = supabase.auth.sign_in_with_password(
     {

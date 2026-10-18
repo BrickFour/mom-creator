@@ -127,7 +127,7 @@ export function WorkspacesPage({ onNavigate }) {
               key={ws.id}
               className={`p-5 rounded-xl border transition-all ${
                 isSelected
-                  ? 'border-brand-gradient bg-white ring-1 ring-brand-gradient shadow-2xs'
+                  ? 'border-indigo-600 bg-white ring-1 ring-indigo-600 shadow-2xs'
                   : 'border-slate-200 bg-white hover:border-slate-300'
               }`}
             >

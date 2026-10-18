@@ -178,7 +178,9 @@ app.add_middleware(
 
 app.include_router(health_router)
 app.include_router(users_router)
+app.include_router(users_router, prefix="/api/v1")
 app.include_router(workspaces_router)
+app.include_router(workspaces_router, prefix="/api/v1")
 app.include_router(mom_templates_router)
 app.include_router(meetings_router)
 app.include_router(attachments_router)

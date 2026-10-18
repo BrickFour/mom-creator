@@ -192,6 +192,13 @@ h6 {
   color: transparent;
 }
 
+svg.text-brand-gradient,
+.text-brand-gradient > svg,
+.text-brand-gradient svg {
+  color: #0066ff;
+  stroke: #0066ff;
+}
+
 
 
 /* =========================================================

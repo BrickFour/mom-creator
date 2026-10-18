@@ -23,6 +23,7 @@ import { ConfirmDialog } from '../components/common/ConfirmDialog.jsx';
 import { MeetingStatusBadge, MeetingModeBadge } from '../components/common/StatusBadge.jsx';
 import { BrowserRecorder } from '../components/meeting/BrowserRecorder.jsx';
 import { UploadRecording } from '../components/meeting/UploadRecording.jsx';
+import { ImportTranscript } from '../components/meeting/ImportTranscript.jsx';
 import { GoogleMeetCard } from '../components/integrations/GoogleMeetCard.jsx';
 import { ProcessingProgress } from '../components/meeting/ProcessingProgress.jsx';
 import { AttachmentsList } from '../components/meeting/AttachmentsList.jsx';
@@ -226,6 +227,57 @@ export function MeetingDetailPage({
     } catch (err) {
       setProcessingStage('failed');
       setProcessingError(err.message || 'Failed to generate MOM from transcript');
+    }
+  };
+
+  const handleImportTranscript = async ({ file, text }) => {
+    if (!meeting) return;
+    const targetWorkspaceId = meeting.workspace_id || currentWorkspace?.id;
+    if (!targetWorkspaceId) {
+      showToast('No active workspace found for this meeting', 'error');
+      return;
+    }
+
+    setProcessingError(null);
+    setProcessingStage('uploading');
+
+    try {
+      const uploadFile =
+        file ||
+        new File(
+          [text],
+          `imported_transcript_${Date.now()}.txt`,
+          { type: 'text/plain' }
+        );
+
+      const uploaded = await uploadToStorage({
+        file: uploadFile,
+        bucket: 'meeting-files',
+        workspaceId: targetWorkspaceId,
+        meetingId: meeting.id,
+        customFileName: uploadFile.name,
+      });
+
+      setLastUploadedPath(uploaded.path);
+      setProcessingStage('generating_mom');
+
+      const momJob = await createProcessingJob({
+        meeting_id: meeting.id,
+        job_type: 'mom_generation',
+        input_file_path: uploaded.path,
+      });
+
+      await runProcessingJob(momJob.id);
+      await pollProcessingJob(momJob.id);
+
+      setProcessingStage('completed');
+      showToast('MOM generated from imported transcript!', 'success');
+      await loadAllData();
+    } catch (err) {
+      console.error('Import processing failed:', err);
+      setProcessingStage('failed');
+      setProcessingError(err.message || 'Failed to process imported transcript.');
+      showToast(err.message || 'Import failed', 'error');
     }
   };
 
@@ -448,37 +500,10 @@ export function MeetingDetailPage({
               )}
 
               {meeting.mode === 'import' && (
-                <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-3 text-center">
-                  <p className="text-xs font-semibold text-slate-800">Direct MOM Generation</p>
-                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                    Generate the structured MOM from existing meeting transcripts or notes.
-                  </p>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setProcessingStage('generating_mom');
-                      let genJobId;
-                      createProcessingJob({ meeting_id: meeting.id, job_type: 'mom_generation' })
-                        .then((j) => {
-                          genJobId = j.id;
-                          return runProcessingJob(j.id);
-                        })
-                        .then(() => pollProcessingJob(genJobId))
-                        .then(() => {
-                          setProcessingStage('completed');
-                          loadAllData();
-                        })
-                        .catch((err) => {
-                          setProcessingStage('failed');
-                          setProcessingError(err.message);
-                        });
-                    }}
-
-                    icon={Sparkles}
-                  >
-                    Generate MOM
-                  </Button>
-                </div>
+                <ImportTranscript
+                  onImportTranscript={handleImportTranscript}
+                  loading={processingStage !== 'idle'}
+                />
               )}
             </>
           )}

@@ -36,9 +36,15 @@ def _get_current_user(
     supabase: Client,
     access_token: str,
 ):
-    response = supabase.auth.get_user(
-        access_token
-    )
+    try:
+        response = supabase.auth.get_user(
+            access_token
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid authentication token: {exc}",
+        )
 
     if response.user is None:
         raise HTTPException(
