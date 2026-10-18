@@ -201,6 +201,8 @@ app.include_router(documents_router)
 # ============================================================
 
 @app.get("/")
+@app.get("/api")
+@app.get("/api/index.py")
 async def root():
 
     return {

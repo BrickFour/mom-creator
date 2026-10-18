@@ -42,7 +42,7 @@ export function markBackendOnline() {
  * Pings the backend health endpoint.
  * Detects if the backend serverless instance is initializing.
  */
-export async function pingBackend(showWarmupThresholdMs = 4500) {
+export async function pingBackend(showWarmupThresholdMs = 2500) {
   const baseUrl = getApiBaseUrl();
   status.isChecking = true;
 
@@ -55,39 +55,29 @@ export async function pingBackend(showWarmupThresholdMs = 4500) {
   }, showWarmupThresholdMs);
 
   const controller = new AbortController();
-  const hardTimeout = setTimeout(() => controller.abort(), 10000); // Fast 10s max timeout for serverless
+  const hardTimeout = setTimeout(() => controller.abort(), 35000); // Allow sufficient time for serverless cold start
 
   try {
     const start = Date.now();
+    const candidateEndpoints = ['/health', '/', '/api/v1/health'];
     let isReachable = false;
     let finalStatus = 0;
 
-    try {
-      const response = await fetch(`${baseUrl}/health`, {
-        method: 'GET',
-        signal: controller.signal,
-        cache: 'no-store',
-      });
-
-      if (response.ok || response.status === 200 || response.status === 401) {
-        isReachable = true;
-        finalStatus = response.status;
-      }
-    } catch {
-      // Fallback ping to root /
+    for (const ep of candidateEndpoints) {
       try {
-        const rootResponse = await fetch(`${baseUrl}/`, {
+        const response = await fetch(`${baseUrl}${ep}`, {
           method: 'GET',
           signal: controller.signal,
           cache: 'no-store',
         });
 
-        if (rootResponse.ok || rootResponse.status === 200 || rootResponse.status === 401) {
+        if (response.ok || response.status === 200 || response.status === 401 || response.status === 403) {
           isReachable = true;
-          finalStatus = rootResponse.status;
+          finalStatus = response.status;
+          break;
         }
       } catch {
-        // Unreachable
+        // Try next candidate endpoint
       }
     }
 
