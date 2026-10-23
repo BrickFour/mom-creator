@@ -50,7 +50,7 @@ export function TermsOfServicePage() {
                 1. Acceptance of Terms
               </h2>
               <p>
-                By creating an account, accessing, or using Samvadini, you agree to be bound by these Terms of Service. If you do not agree with any portion of these terms, you must discontinue use of the service.
+                By creating an account, accessing, or using MOM Creator, you agree to be bound by these Terms of Service. If you do not agree with any portion of these terms, you must discontinue use of the service.
               </p>
             </section>
 
@@ -59,7 +59,7 @@ export function TermsOfServicePage() {
                 2. Description of the Service
               </h2>
               <p>
-                Samvadini is a meeting management platform providing tools for capturing discussions, processing audio/video recordings, transcribing spoken dialogue, generating structured Minutes of Meeting (MOM), and tracking action item commitments.
+                MOM Creator is a meeting management platform providing tools for capturing discussions, processing audio/video recordings, transcribing spoken dialogue, generating structured Minutes of Meeting (MOM), and tracking action item commitments.
               </p>
             </section>
 
@@ -77,7 +77,7 @@ export function TermsOfServicePage() {
                 4. Meeting Content and Permissions
               </h2>
               <p>
-                You retain ownership of the meeting content, files, audio, and documents you submit to Samvadini. You represent and warrant that you possess all necessary consents, legal authorizations, and rights from all participants to record, transcribe, and process meeting content.
+                You retain ownership of the meeting content, files, audio, and documents you submit to MOM Creator. You represent and warrant that you possess all necessary consents, legal authorizations, and rights from all participants to record, transcribe, and process meeting content.
               </p>
             </section>
 
@@ -86,7 +86,7 @@ export function TermsOfServicePage() {
                 5. AI-Generated Outputs
               </h2>
               <p>
-                Samvadini uses machine learning and artificial intelligence to assist in generating transcripts, summaries, and action items. Because AI outputs may occasionally contain inaccuracies or omissions, users should review and finalize all generated Minutes of Meeting before external distribution.
+                MOM Creator uses machine learning and artificial intelligence to assist in generating transcripts, summaries, and action items. Because AI outputs may occasionally contain inaccuracies or omissions, users should review and finalize all generated Minutes of Meeting before external distribution.
               </p>
             </section>
 
@@ -95,7 +95,7 @@ export function TermsOfServicePage() {
                 6. Third-Party Integrations
               </h2>
               <p>
-                Samvadini provides optional integrations with third-party providers (such as Google Meet, Google Calendar, and Fireflies.ai). Your use of those third-party services is subject to their respective terms and policies.
+                MOM Creator provides optional integrations with third-party providers (such as Google Meet, Google Calendar, and Fireflies.ai). Your use of those third-party services is subject to their respective terms and policies.
               </p>
             </section>
 
@@ -113,7 +113,7 @@ export function TermsOfServicePage() {
                 8. Contact Information
               </h2>
               <p>
-                For questions regarding these Terms of Service, please contact the Samvadini administration team.
+                For questions regarding these Terms of Service, please contact the MOM Creator administration team.
               </p>
             </section>
           </div>

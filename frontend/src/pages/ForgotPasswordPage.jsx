@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Mail, ArrowLeft, CheckCircle2, AlertTriangle } from 'lucide-react';
-import samvadiniLogo from '../assets/samvadini-logo.png';
+import logo from '../assets/logo.png';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
@@ -37,8 +37,8 @@ export function ForgotPasswordPage({ onNavigateToLogin }) {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <img
-            src={samvadiniLogo}
-            alt="Samvadini"
+            src={logo}
+            alt="MOM Creator"
             className="w-20 h-20 object-contain mx-auto drop-shadow-sm rounded-2xl"
           />
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
@@ -64,7 +64,7 @@ export function ForgotPasswordPage({ onNavigateToLogin }) {
                 <p className="mt-2 text-sm leading-6 text-slate-500">
                   If an account exists for this email address, a password
                   reset link has been sent. The link will take you back to
-                  Samvadini to choose a new password.
+                  MOM Creator to choose a new password.
                 </p>
               </div>
 

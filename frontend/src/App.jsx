@@ -96,7 +96,7 @@ function MainApp() {
           </div>
 
           <p className="text-xs font-medium text-slate-500">
-            Loading Samvadini...
+            Loading MOM Creator...
           </p>
         </div>
       </div>

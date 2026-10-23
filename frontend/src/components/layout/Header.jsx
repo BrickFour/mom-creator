@@ -1,6 +1,6 @@
 import { Menu, Plus } from 'lucide-react';
 import { useWorkspace } from '../../context/WorkspaceContext.jsx';
-import samvadiniLogo from '../../assets/samvadini-logo.png';
+import logo from '../../assets/logo.png';
 
 export function Header({
   onToggleMobileMenu,
@@ -25,12 +25,12 @@ export function Header({
         {/* Mobile brand badge */}
         <div className="md:hidden flex items-center gap-1.5 shrink-0">
           <img
-            src={samvadiniLogo}
-            alt="Samvadini"
+            src={logo}
+            alt="MOM Creator"
             className="w-7 h-7 object-contain rounded-md"
           />
           <span className="text-xs font-bold tracking-tight text-white">
-            Samvadini
+            MOM Creator
           </span>
         </div>
 

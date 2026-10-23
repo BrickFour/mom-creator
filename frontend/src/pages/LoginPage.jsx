@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
 import { Lock, Mail, AlertTriangle } from 'lucide-react';
-import samvadiniLogo from '../assets/samvadini-logo.png';
+import logo from '../assets/logo.png';
 
 export function LoginPage({ onNavigateToRegister, onNavigateToForgotPassword }) {
   const { signIn, configured, authError } = useAuth();
@@ -33,12 +33,12 @@ export function LoginPage({ onNavigateToRegister, onNavigateToForgotPassword }) 
         {/* Brand header */}
         <div className="text-center space-y-2">
           <img
-            src={samvadiniLogo}
-            alt="Samvadini"
+            src={logo}
+            alt="MOM Creator"
             className="w-20 h-20 object-contain mx-auto drop-shadow-sm rounded-2xl"
           />
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Samvadini
+            MOM Creator
           </h1>
           <p className="text-xs text-slate-500">
             Sign in to access your meeting minutes and action items.

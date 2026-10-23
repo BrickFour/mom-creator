@@ -4,7 +4,7 @@
  * offline periods, and mobile OS memory reclamation.
  */
 
-const DB_NAME = 'samvadini_recorder_db';
+const DB_NAME = 'mom_creator_recorder_db';
 const DB_VERSION = 1;
 const STORE_NAME = 'cached_recordings';
 

@@ -50,10 +50,10 @@ export function PrivacyPolicyPage() {
                 1. Introduction
               </h2>
               <p>
-                Samvadini is a comprehensive meeting intelligence and management application designed to help users capture meeting audio and video, process recordings and transcripts of any duration, generate professional Minutes of Meeting (MOM), and manage action items.
+                MOM Creator is a comprehensive meeting intelligence and management application designed to help users capture meeting audio and video, process recordings and transcripts of any duration, generate professional Minutes of Meeting (MOM), and manage action items.
               </p>
               <p>
-                This Privacy Policy explains what information Samvadini processes, how that information is used, and how users can manage their data and privacy.
+                This Privacy Policy explains what information MOM Creator processes, how that information is used, and how users can manage their data and privacy.
               </p>
             </section>
 
@@ -61,7 +61,7 @@ export function PrivacyPolicyPage() {
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-2">
                 2. Information We Process
               </h2>
-              <p>Depending on how you use Samvadini, the service may process:</p>
+              <p>Depending on how you use MOM Creator, the service may process:</p>
               <ul className="list-disc pl-6 space-y-1.5 text-slate-600">
                 <li>Account and profile information (name, email address).</li>
                 <li>Workspace details and workspace membership permissions.</li>
@@ -79,7 +79,7 @@ export function PrivacyPolicyPage() {
                 3. Google Account and Google API Data
               </h2>
               <p>
-                If you connect your Google account, Samvadini may request authorization to access Google Meet and Google Calendar services required to deliver integration features.
+                If you connect your Google account, MOM Creator may request authorization to access Google Meet and Google Calendar services required to deliver integration features.
               </p>
               <p>
                 Google user data is used exclusively to provide and improve the functionality requested by the user and is handled in strict compliance with the Google API Services User Data Policy, including all applicable Limited Use requirements.
@@ -91,7 +91,7 @@ export function PrivacyPolicyPage() {
                 4. How Google Data Is Used
               </h2>
               <p>
-                Google data accessed through Samvadini is used only to support meeting scheduling, calendar synchronization, and Google Meet transcript processing requested by the user.
+                Google data accessed through MOM Creator is used only to support meeting scheduling, calendar synchronization, and Google Meet transcript processing requested by the user.
               </p>
               <p>
                 Google user data is never sold to third parties, never used for advertising, and never transferred for purposes unrelated to the core functionality of the connected integration.
@@ -103,7 +103,7 @@ export function PrivacyPolicyPage() {
                 5. OAuth Credentials & Encryption
               </h2>
               <p>
-                When you authorize third-party integrations, Samvadini securely stores the credentials required to maintain the connection. All OAuth refresh tokens are encrypted at rest prior to storage.
+                When you authorize third-party integrations, MOM Creator securely stores the credentials required to maintain the connection. All OAuth refresh tokens are encrypted at rest prior to storage.
               </p>
               <p>
                 Users can disconnect third-party integrations at any time via the application's Integrations page.
@@ -127,7 +127,7 @@ export function PrivacyPolicyPage() {
                 7. Data Security & Storage
               </h2>
               <p>
-                Samvadini employs enterprise-grade security controls to safeguard application data, user accounts, and files. These measures include TLS/HTTPS encryption in transit, strict Row Level Security (RLS) policies on database storage, encrypted token storage, and isolated workspace tenant boundaries.
+                MOM Creator employs enterprise-grade security controls to safeguard application data, user accounts, and files. These measures include TLS/HTTPS encryption in transit, strict Row Level Security (RLS) policies on database storage, encrypted token storage, and isolated workspace tenant boundaries.
               </p>
             </section>
 
@@ -136,7 +136,7 @@ export function PrivacyPolicyPage() {
                 8. Contact Information
               </h2>
               <p>
-                For questions or requests concerning this Privacy Policy, your personal data, or data deletion, please contact the Samvadini support team.
+                For questions or requests concerning this Privacy Policy, your personal data, or data deletion, please contact the MOM Creator support team.
               </p>
             </section>
           </div>

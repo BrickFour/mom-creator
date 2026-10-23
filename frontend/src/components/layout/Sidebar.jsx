@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { WorkspaceSelector } from '../workspace/WorkspaceSelector.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
-import samvadiniLogo from "../../assets/samvadini-logo.png";
+import logo from "../../assets/logo.png";
 
 export function Sidebar({
   currentPath,
@@ -49,15 +49,12 @@ export function Sidebar({
       <div className="h-16 px-4 flex items-center justify-between border-b border-blue-900/40">
         <div className="flex items-center gap-2.5 min-w-0">
           <img
-            src={samvadiniLogo}
-            alt="Samvadini"
+            src={logo}
+            alt="MOM Creator"
             className="h-10 w-10 object-contain rounded-xl shrink-0 drop-shadow-sm bg-white/5 p-0.5"
           />
           <div className="min-w-0">
             <span className="text-sm font-extrabold tracking-wide text-white block leading-tight">
-              SAMVADINI
-            </span>
-            <span className="text-[9px] font-bold tracking-wider text-cyan-400 uppercase block">
               MOM CREATOR
             </span>
           </div>

@@ -1,4 +1,4 @@
-import samvadiniLogo from '../../assets/samvadini-logo.png';
+import logo from '../../assets/logo.png';
 
 function navigateTo(path) {
   window.history.pushState({}, '', path);
@@ -12,12 +12,12 @@ export function PublicFooter() {
         {/* Brand Copyright */}
         <div className="flex items-center gap-3">
           <img
-            src={samvadiniLogo}
-            alt="Samvadini"
+            src={logo}
+            alt="MOM Creator"
             className="h-8 w-8 object-contain rounded-lg"
           />
           <div className="text-xs">
-            <span className="font-semibold text-white">Samvadini MOM Creator</span>
+            <span className="font-semibold text-white">MOM Creator</span>
             <span className="text-slate-500 block">
               © {new Date().getFullYear()} All rights reserved.
             </span>

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
 import { Lock, Mail, User, CheckCircle2, ArrowRight } from 'lucide-react';
-import samvadiniLogo from '../assets/samvadini-logo.png';
+import logo from '../assets/logo.png';
 
 export function RegisterPage({ onNavigateToLogin }) {
   const { signUp } = useAuth();
@@ -43,15 +43,15 @@ export function RegisterPage({ onNavigateToLogin }) {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <img
-            src={samvadiniLogo}
-            alt="Samvadini"
+            src={logo}
+            alt="MOM Creator"
             className="w-20 h-20 object-contain mx-auto drop-shadow-sm rounded-2xl"
           />
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Create Your Account
           </h1>
           <p className="text-xs text-slate-500">
-            Get started with Samvadini for automated Minutes of Meeting and task tracking.
+            Get started with MOM Creator for automated Minutes of Meeting and task tracking.
           </p>
         </div>
 

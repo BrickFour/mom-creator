@@ -53,7 +53,7 @@ export function PublicHomePage() {
 
               {/* Description */}
               <p className="mt-6 text-base sm:text-xl text-slate-300 leading-relaxed max-w-2xl">
-                Samvadini helps teams capture boardroom discussions, process recordings and transcripts of any length, generate structured Minutes of Meeting, and organize follow-up action items.
+                MOM Creator helps teams capture boardroom discussions, process recordings and transcripts of any length, generate structured Minutes of Meeting, and organize follow-up action items.
               </p>
 
               {/* CTAs */}
@@ -156,7 +156,7 @@ export function PublicHomePage() {
                   Seamless Google Meet & Calendar Sync
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed pt-1">
-                  Samvadini integrates with Google services to support automated meeting workflows, transcript syncing, and calendar scheduling. Google user data is protected in full accordance with Google's API Services User Data Policy and Limited Use standards.
+                  MOM Creator integrates with Google services to support automated meeting workflows, transcript syncing, and calendar scheduling. Google user data is protected in full accordance with Google's API Services User Data Policy and Limited Use standards.
                 </p>
               </div>
             </div>
@@ -174,7 +174,7 @@ export function PublicHomePage() {
                   Ready to upgrade your meeting workflow?
                 </h2>
                 <p className="text-sm text-blue-100 max-w-xl">
-                  Start generating structured MOMs and tracking actionable results with Samvadini today.
+                  Start generating structured MOMs and tracking actionable results with MOM Creator today.
                 </p>
               </div>
               <button

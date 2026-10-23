@@ -1,5 +1,5 @@
 import { useAuth } from '../../context/AuthContext.jsx';
-import samvadiniLogo from '../../assets/samvadini-logo.png';
+import logo from '../../assets/logo.png';
 
 function navigateTo(path) {
   window.history.pushState({}, '', path);
@@ -20,15 +20,12 @@ export function PublicHeader() {
           className="flex items-center gap-3 transition-opacity hover:opacity-90 cursor-pointer"
         >
           <img
-            src={samvadiniLogo}
-            alt="Samvadini"
+            src={logo}
+            alt="MOM Creator"
             className="h-10 w-10 object-contain rounded-xl shadow-xs"
           />
           <div className="flex flex-col text-left">
             <span className="text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
-              Samvadini
-            </span>
-            <span className="text-[10px] sm:text-[11px] font-semibold text-cyan-400 uppercase tracking-wider">
               MOM Creator
             </span>
           </div>

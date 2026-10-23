@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { getSupabase } from '../lib/supabase.js';
 import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
-import samvadiniLogo from '../assets/samvadini-logo.png';
+import logo from '../assets/logo.png';
 
 export function ResetPasswordPage({ onNavigateToLogin, onNavigateToForgotPassword }) {
   const { updatePassword, configured } = useAuth();
@@ -101,15 +101,15 @@ export function ResetPasswordPage({ onNavigateToLogin, onNavigateToForgotPasswor
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <img
-            src={samvadiniLogo}
-            alt="Samvadini"
+            src={logo}
+            alt="MOM Creator"
             className="w-20 h-20 object-contain mx-auto drop-shadow-sm rounded-2xl"
           />
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Set a new password
           </h1>
           <p className="text-xs text-slate-500">
-            Choose a new password for your Samvadini account.
+            Choose a new password for your MOM Creator account.
           </p>
         </div>
 
