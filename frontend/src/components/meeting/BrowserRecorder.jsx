@@ -66,6 +66,11 @@ export function BrowserRecorder({
   const analyserRef = useRef(null);
   const animFrameRef = useRef(null);
 
+  // Periodic in-progress backup so a killed/evicted mobile tab doesn't lose
+  // the whole recording, only whatever happened since the last autosave.
+  const autosaveTimerRef = useRef(null);
+  const isPausedRef = useRef(false);
+
   // Request screen wake lock to keep screen awake during meeting
   const requestWakeLock = async () => {
     if ('wakeLock' in navigator && !wakeLockRef.current) {
@@ -224,6 +229,8 @@ export function BrowserRecorder({
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach((t) => t.stop());
       }
+
+      if (autosaveTimerRef.current) clearInterval(autosaveTimerRef.current);
     };
   }, []);
 
@@ -270,6 +277,7 @@ export function BrowserRecorder({
   const startRecording = async () => {
     setPermissionError('');
     setInterruptedByCall(false);
+    isPausedRef.current = false;
     chunksRef.current = [];
 
     try {
@@ -286,26 +294,31 @@ export function BrowserRecorder({
       // Handle Smartphone incoming call & track interruptions
       const audioTrack = stream.getAudioTracks()[0];
       if (audioTrack) {
-        // On smartphone incoming call, OS mutes the microphone track!
+        // Mobile browsers mute this track both for real incoming calls AND
+        // just for backgrounding the tab / locking the screen (a normal part
+        // of recording an "offline" meeting with the phone in a pocket).
+        // We used to auto-pause the MediaRecorder here and wait for the user
+        // to tap "Resume" — but with the screen locked, that tap never
+        // happens, so the recording stayed paused for the rest of the
+        // meeting and only the first second or two ever got captured. Instead,
+        // just surface a notice and keep the recorder running: the track
+        // emits silence while muted, so nothing is lost once it unmutes.
         audioTrack.addEventListener('mute', () => {
-          console.warn('Microphone track muted by OS (incoming call or system interruption)');
-          if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-            pauseRecording();
-            setInterruptedByCall(true);
-            if ('vibrate' in navigator) {
-              try {
-                navigator.vibrate([200, 100, 200]);
-              } catch {
-                // ignore
-              }
+          console.warn('Microphone track muted by OS (incoming call, background tab, or system interruption)');
+          setInterruptedByCall(true);
+          if ('vibrate' in navigator) {
+            try {
+              navigator.vibrate([200, 100, 200]);
+            } catch {
+              // ignore
             }
           }
         });
 
-        // When phone call ends, track unmutes
+        // When the interruption ends, track unmutes
         audioTrack.addEventListener('unmute', () => {
-          console.info('Microphone track unmuted by OS (call ended)');
-          // Keep paused with user prompt to resume
+          console.info('Microphone track unmuted');
+          setInterruptedByCall(false);
         });
 
         // Handle unexpected disconnection (e.g. bluetooth mic pulled out)
@@ -350,6 +363,11 @@ export function BrowserRecorder({
       };
 
       mediaRecorder.onstop = async () => {
+        if (autosaveTimerRef.current) {
+          clearInterval(autosaveTimerRef.current);
+          autosaveTimerRef.current = null;
+        }
+
         const finalType = mimeType || mediaRecorder.mimeType || 'audio/webm';
         const blob = new Blob(chunksRef.current, { type: finalType });
         setAudioBlob(blob);
@@ -366,11 +384,16 @@ export function BrowserRecorder({
         setRecordingState('stopped');
 
         // Persist to local IndexedDB immediately to survive refreshes & tab drops
+        const finalDuration = isPausedRef.current
+          ? accumulatedDurationRef.current
+          : accumulatedDurationRef.current +
+            Math.floor((Date.now() - lastResumeTimeRef.current) / 1000);
+        setDuration(finalDuration);
         try {
           await saveOfflineRecording({
             meetingId,
             blob,
-            duration: accumulatedDurationRef.current || duration,
+            duration: finalDuration,
             detectedExt: ext,
           });
           setStorageSaveStatus('saved');
@@ -409,6 +432,33 @@ export function BrowserRecorder({
           Math.floor((Date.now() - lastResumeTimeRef.current) / 1000);
         setDuration(elapsed);
       }, 500);
+
+      // Periodically back up what's been captured so far to IndexedDB.
+      // If the mobile OS evicts/kills this tab mid-meeting before Stop is
+      // ever pressed, we only lose the audio since the last autosave
+      // instead of the entire recording.
+      if (autosaveTimerRef.current) clearInterval(autosaveTimerRef.current);
+      autosaveTimerRef.current = setInterval(() => {
+        if (!chunksRef.current.length) return;
+        try {
+          const partialBlob = new Blob(chunksRef.current, {
+            type: mimeType || 'audio/webm',
+          });
+          const elapsed =
+            accumulatedDurationRef.current +
+            Math.floor((Date.now() - lastResumeTimeRef.current) / 1000);
+          saveOfflineRecording({
+            meetingId,
+            blob: partialBlob,
+            duration: elapsed,
+            detectedExt: ext,
+          }).catch((err) => {
+            console.warn('Periodic offline autosave failed:', err);
+          });
+        } catch (err) {
+          console.warn('Periodic offline autosave failed:', err);
+        }
+      }, 15000);
     } catch (err) {
       console.error('Microphone access failed:', err);
       setPermissionError(
@@ -438,6 +488,7 @@ export function BrowserRecorder({
       );
       accumulatedDurationRef.current += elapsedSinceResume;
       setDuration(accumulatedDurationRef.current);
+      isPausedRef.current = true;
 
       setRecordingState('paused');
       setAudioLevel(0);
@@ -457,6 +508,7 @@ export function BrowserRecorder({
 
       setInterruptedByCall(false);
       lastResumeTimeRef.current = Date.now();
+      isPausedRef.current = false;
       setRecordingState('recording');
 
       await requestWakeLock();
@@ -504,6 +556,11 @@ export function BrowserRecorder({
     setIsSubmitting(false);
     setRecoveredFromStorage(false);
     setStorageSaveStatus(null);
+
+    if (autosaveTimerRef.current) {
+      clearInterval(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
 
     // Delete saved backup from IndexedDB on discard
     try {
@@ -631,9 +688,9 @@ export function BrowserRecorder({
         <div className="flex items-start gap-3 p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs animate-pulse">
           <PhoneCall className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
           <div className="space-y-1">
-            <p className="font-semibold">Meeting Paused: Incoming Call or Audio Interruption</p>
+            <p className="font-semibold">Audio Interruption Detected</p>
             <p className="text-[11px] text-amber-800">
-              Your device received a phone call or audio interruption. Your meeting recording was safely paused. Tap "Resume" when your call is finished.
+              Your microphone was briefly muted (e.g. an incoming call, or the screen locked / app backgrounded). Recording is continuing automatically — no action needed.
             </p>
           </div>
         </div>
