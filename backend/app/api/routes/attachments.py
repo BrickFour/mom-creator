@@ -6,6 +6,7 @@ from app.services.supabase import create_admin_supabase_client
 from app.core.security import (
     get_access_token,
     get_supabase,
+    get_authenticated_user,
 )
 
 
@@ -44,21 +45,8 @@ async def confirm_upload(
     # Authenticate user
     # --------------------------------------------------------
 
-    try:
-        auth_response = supabase.auth.get_user(access_token)
-    except Exception as exc:
-        raise HTTPException(
-            status_code=401,
-            detail=f"Invalid authentication token: {exc}",
-        )
-
-    if not auth_response.user:
-        raise HTTPException(
-            status_code=401,
-            detail="Unauthorized",
-        )
-
-    user_id = auth_response.user.id
+    user = get_authenticated_user(supabase, access_token)
+    user_id = user.id
 
     # --------------------------------------------------------
     # Validate bucket

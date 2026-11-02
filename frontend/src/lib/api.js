@@ -60,16 +60,32 @@ export async function apiRequest(endpoint, options = {}) {
 
   const headers = new Headers(options.headers || {});
 
-  // Retrieve current Supabase access token if Supabase is initialized
-  const supabase = getSupabase();
-  if (supabase) {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        headers.set('Authorization', `Bearer ${session.access_token}`);
+  // Check if a demo session is active
+  let demoToken = null;
+  try {
+    const demoRaw = localStorage.getItem('mom_demo_session');
+    if (demoRaw) {
+      const parsed = JSON.parse(demoRaw);
+      if (parsed?.access_token) {
+        demoToken = parsed.access_token;
       }
-    } catch (e) {
-      console.warn('Could not retrieve Supabase session for API request:', e);
+    }
+  } catch {}
+
+  if (demoToken) {
+    headers.set('Authorization', `Bearer ${demoToken}`);
+  } else {
+    // Retrieve current Supabase access token if Supabase is initialized
+    const supabase = getSupabase();
+    if (supabase) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          headers.set('Authorization', `Bearer ${session.access_token}`);
+        }
+      } catch (e) {
+        console.warn('Could not retrieve Supabase session for API request:', e);
+      }
     }
   }
 

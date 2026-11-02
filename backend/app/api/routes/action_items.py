@@ -3,7 +3,11 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from supabase import Client
 
-from app.core.security import get_access_token, get_supabase
+from app.core.security import (
+    get_access_token,
+    get_supabase,
+    get_authenticated_user,
+)
 from app.schemas.action_item import (
     ActionItemCreate,
     ActionItemResponse,
@@ -15,28 +19,6 @@ router = APIRouter(
     prefix="/api/v1/meetings",
     tags=["Action Items"],
 )
-
-
-def get_authenticated_user(
-    supabase: Client,
-    access_token: str,
-):
-    try:
-        response = supabase.auth.get_user(access_token)
-    except Exception as exc:
-        raise HTTPException(
-            status_code=401,
-            detail=f"Invalid authentication token: {exc}",
-        ) from exc
-
-    user = response.user
-    if user is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authentication token",
-        )
-
-    return user
 
 
 async def get_meeting(

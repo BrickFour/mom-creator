@@ -4,6 +4,7 @@ from supabase import Client
 from app.core.security import (
     get_access_token,
     get_supabase,
+    get_authenticated_user,
 )
 from app.schemas.user import MeResponse
 
@@ -24,25 +25,12 @@ async def get_current_user(
 ):
     """
     Return the currently authenticated user and their profile.
+    Supports both standard Supabase tokens and demo accounts.
     """
-
-    try:
-        auth_response = supabase.auth.get_user(
-            access_token
-        )
-    except Exception as exc:
-        raise HTTPException(
-            status_code=401,
-            detail=f"Invalid authentication token: {exc}",
-        )
-
-    user = auth_response.user
-
-    if user is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authentication token",
-        )
+    user = get_authenticated_user(
+        supabase,
+        access_token,
+    )
 
     try:
         response = (
@@ -52,7 +40,6 @@ async def get_current_user(
                 "id,name,created_at,updated_at"
             )
             .eq("id", user.id)
-            .single()
             .execute()
         )
     except Exception as exc:
@@ -61,16 +48,21 @@ async def get_current_user(
             detail=f"Failed to load profile: {exc}",
         )
 
-    if response.data is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Profile not found",
-        )
+    profile_data = response.data[0] if response.data else None
+
+    if profile_data is None:
+        # If demo user profile is being created on the fly
+        name = (user.user_metadata or {}).get("name") if hasattr(user, "user_metadata") else user.email
+        try:
+            insert_res = supabase.table("profiles").insert({"id": user.id, "name": name}).execute()
+            profile_data = insert_res.data[0] if insert_res.data else {"id": user.id, "name": name}
+        except Exception:
+            profile_data = {"id": user.id, "name": name}
 
     return {
         "user": {
             "id": user.id,
             "email": user.email,
         },
-        "profile": response.data,
+        "profile": profile_data,
     }

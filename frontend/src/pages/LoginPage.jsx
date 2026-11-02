@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
-import { Lock, Mail, AlertTriangle } from 'lucide-react';
+import { Lock, Mail, AlertTriangle, Users, Sparkles } from 'lucide-react';
 import logo from '../assets/logo.png';
+import { DEMO_ACCOUNTS, isLocalEnvironment } from '../lib/demoAccounts.js';
 
 export function LoginPage({ onNavigateToRegister, onNavigateToForgotPassword }) {
   const { signIn, configured, authError } = useAuth();
@@ -12,6 +13,19 @@ export function LoginPage({ onNavigateToRegister, onNavigateToForgotPassword }) 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedDemoEmail, setSelectedDemoEmail] = useState('');
+
+  const isLocal = isLocalEnvironment();
+
+  const handleSelectDemo = (selectedEmail) => {
+    setSelectedDemoEmail(selectedEmail);
+    const demo = DEMO_ACCOUNTS.find((a) => a.email === selectedEmail);
+    if (demo) {
+      setEmail(demo.email);
+      setPassword(demo.password);
+      if (error) setError('');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,6 +96,35 @@ export function LoginPage({ onNavigateToRegister, onNavigateToForgotPassword }) 
               required
             />
 
+            {/* Demo Accounts Quick-Select */}
+            <div className="pt-2 pb-1 border-t border-slate-100 space-y-2">
+              <div className="flex items-center justify-between gap-1">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Demo Accounts</span>
+                </label>
+                {!isLocal && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <Sparkles className="w-2.5 h-2.5" />
+                    No auth required
+                  </span>
+                )}
+              </div>
+
+              <select
+                value={selectedDemoEmail}
+                onChange={(e) => handleSelectDemo(e.target.value)}
+                className="w-full text-xs text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+              >
+                <option value="">-- Choose an employee demo account --</option>
+                {DEMO_ACCOUNTS.map((acc) => (
+                  <option key={acc.email} value={acc.email}>
+                    {acc.name} ({acc.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {(error || authError) && (
               <p className="text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200">
                 {error || authError}
@@ -92,7 +135,7 @@ export function LoginPage({ onNavigateToRegister, onNavigateToForgotPassword }) 
               type="submit"
               className="w-full"
               loading={loading}
-              disabled={!configured}
+              disabled={!configured && isLocal}
             >
               Sign In
             </Button>

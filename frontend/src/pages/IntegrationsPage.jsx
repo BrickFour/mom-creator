@@ -6,10 +6,13 @@ import { connectGoogleMeet } from '../services/googleMeet.js';
 import { connectFireflies, disconnectFireflies, getFirefliesStatus } from '../services/fireflies.js';
 import { useWorkspace } from '../context/WorkspaceContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export function IntegrationsPage() {
   const { currentWorkspace } = useWorkspace();
+  const { user } = useAuth();
   const { showToast } = useToast();
+  const isGoogleMeetAllowed = (user?.email || '').trim().toLowerCase() === 'thorataryan0@gmail.com';
   const [calendarStatus, setCalendarStatus] = useState(null);
   const [firefliesStatus, setFirefliesStatus] = useState(null);
   const [firefliesKey, setFirefliesKey] = useState('');
@@ -41,6 +44,10 @@ export function IntegrationsPage() {
   }, [currentWorkspace?.id]);
 
   const handleConnectMeet = async () => {
+    if (!isGoogleMeetAllowed) {
+      showToast('This feature will be available once the domain is specified.', 'warning');
+      return;
+    }
     setConnectingMeet(true);
     try {
       const res = await connectGoogleMeet();
@@ -113,13 +120,39 @@ export function IntegrationsPage() {
         <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 text-brand-gradient flex items-center justify-center shrink-0"><Video className="w-6 h-6" /></div>
+              <div className="w-12 h-12 rounded-xl bg-indigo-50 text-brand-gradient flex items-center justify-center shrink-0">
+                <Video className="w-6 h-6" />
+              </div>
               <div className="space-y-1">
-                <h3 className="text-base font-semibold text-slate-900">Google Meet</h3>
-                <p className="text-xs text-slate-500 max-w-xl leading-relaxed">Used exclusively for meeting capture and transcript import.</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-semibold text-slate-900">Google Meet</h3>
+                  {!isGoogleMeetAllowed && (
+                    <span className="inline-flex items-center text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md">
+                      Coming Soon
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
+                  Used exclusively for meeting capture and transcript import.
+                </p>
+                {!isGoogleMeetAllowed && (
+                  <p className="text-xs font-medium text-amber-700 mt-1">
+                    This feature will be available once the domain is specified.
+                  </p>
+                )}
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleConnectMeet} loading={connectingMeet} icon={Link2}>Connect Google</Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleConnectMeet}
+              loading={connectingMeet}
+              disabled={!isGoogleMeetAllowed}
+              title={!isGoogleMeetAllowed ? 'This feature will be available once the domain is specified.' : undefined}
+              icon={Link2}
+            >
+              Connect Google
+            </Button>
           </div>
         </div>
 

@@ -4,43 +4,22 @@ from supabase import Client
 from app.core.security import (
     get_access_token,
     get_supabase,
+    get_authenticated_user,
 )
 from app.schemas.meeting import (
     MeetingCreate,
+    MeetingMode,
     MeetingResponse,
     MeetingUpdate,
 )
+
+ALLOWED_GOOGLE_MEET_EMAIL = "thorataryan0@gmail.com"
 
 
 router = APIRouter(
     prefix="/api/v1/meetings",
     tags=["Meetings"],
 )
-
-
-def get_authenticated_user(
-    supabase: Client,
-    access_token: str,
-):
-    try:
-        response = supabase.auth.get_user(
-            access_token
-        )
-    except Exception as exc:
-        raise HTTPException(
-            status_code=401,
-            detail=f"Invalid authentication token: {exc}",
-        )
-
-    user = response.user
-
-    if user is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authentication token",
-        )
-
-    return user
 
 
 # ============================================================
@@ -68,6 +47,15 @@ async def create_meeting(
         raise HTTPException(
             status_code=400,
             detail="Meeting title cannot be empty",
+        )
+
+    if (
+        payload.mode == MeetingMode.GOOGLE_MEET
+        and (user.email or "").strip().lower() != ALLOWED_GOOGLE_MEET_EMAIL
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="This feature will be available once the domain is specified.",
         )
 
     try:

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getSupabase, isSupabaseConfigured } from '../lib/supabase.js';
 import { getMe, signInWithPassword, signUpWithPassword, signOutUser } from '../services/auth.js';
+import { findDemoAccount, isLocalEnvironment } from '../lib/demoAccounts.js';
 
 const AuthContext = createContext(null);
 
@@ -25,6 +26,26 @@ export function AuthProvider({ children }) {
   }, []);
 
   const refreshSession = useCallback(async () => {
+    // Check if demo session is active in localStorage
+    const demoRaw = localStorage.getItem('mom_demo_session');
+    if (demoRaw) {
+      try {
+        const parsed = JSON.parse(demoRaw);
+        if (parsed?.access_token && parsed?.user) {
+          setSession(parsed);
+          setUser(parsed.user);
+          setProfile(parsed.profile || { id: parsed.user.id, name: parsed.user.user_metadata?.name });
+          setLoading(false);
+          setTimeout(() => {
+            fetchProfile();
+          }, 0);
+          return;
+        }
+      } catch (e) {
+        localStorage.removeItem('mom_demo_session');
+      }
+    }
+
     const supabase = getSupabase();
     if (!supabase) {
       setLoading(false);
@@ -53,6 +74,25 @@ export function AuthProvider({ children }) {
   }, [fetchProfile]);
 
   useEffect(() => {
+    const demoRaw = localStorage.getItem('mom_demo_session');
+    if (demoRaw) {
+      try {
+        const parsed = JSON.parse(demoRaw);
+        if (parsed?.access_token && parsed?.user) {
+          setSession(parsed);
+          setUser(parsed.user);
+          setProfile(parsed.profile || { id: parsed.user.id, name: parsed.user.user_metadata?.name });
+          setLoading(false);
+          setTimeout(() => {
+            fetchProfile();
+          }, 0);
+          return;
+        }
+      } catch (e) {
+        localStorage.removeItem('mom_demo_session');
+      }
+    }
+
     const supabase = getSupabase();
     if (!supabase) {
       setLoading(false);
@@ -66,6 +106,11 @@ export function AuthProvider({ children }) {
     // Defer backend profile loading out of the Supabase onAuthStateChange callback
     // to prevent awaiting while Supabase's internal auth lock is held
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      // Don't overwrite demo session
+      if (localStorage.getItem('mom_demo_session')) {
+        return;
+      }
+
       setSession(newSession);
       setUser(newSession?.user || null);
 
@@ -86,8 +131,49 @@ export function AuthProvider({ children }) {
 
   const signIn = async (email, password) => {
     setAuthError(null);
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const demoAcc = findDemoAccount(cleanEmail);
+    const isLocal = isLocalEnvironment();
+
+    // In the real project (not local), demo accounts do not require Supabase authentication
+    if (!isLocal && demoAcc) {
+      const demoUser = {
+        id: demoAcc.id,
+        email: demoAcc.email,
+        user_metadata: {
+          name: demoAcc.name,
+          full_name: demoAcc.name,
+        },
+        app_metadata: {
+          provider: 'demo',
+        },
+        role: 'authenticated',
+      };
+      const demoSession = {
+        access_token: `demo-token:${demoAcc.email}`,
+        token_type: 'bearer',
+        user: demoUser,
+        expires_at: Math.floor(Date.now() / 1000) + 86400 * 365,
+      };
+
+      localStorage.setItem('mom_demo_session', JSON.stringify({
+        ...demoSession,
+        profile: { id: demoAcc.id, name: demoAcc.name },
+      }));
+
+      setSession(demoSession);
+      setUser(demoUser);
+      setProfile({ id: demoAcc.id, name: demoAcc.name });
+      setLoading(false);
+      setTimeout(() => {
+        fetchProfile();
+      }, 0);
+      return { user: demoUser, session: demoSession };
+    }
+
     try {
       const res = await signInWithPassword(email, password);
+      localStorage.removeItem('mom_demo_session');
       setSession(res.session);
       setUser(res.user);
       if (res.session) {
@@ -97,6 +183,35 @@ export function AuthProvider({ children }) {
       }
       return res;
     } catch (err) {
+      // In the real project, fallback to demo login if Supabase auth fails for a demo account
+      if (!isLocal && demoAcc) {
+        const demoUser = {
+          id: demoAcc.id,
+          email: demoAcc.email,
+          user_metadata: {
+            name: demoAcc.name,
+            full_name: demoAcc.name,
+          },
+          role: 'authenticated',
+        };
+        const demoSession = {
+          access_token: `demo-token:${demoAcc.email}`,
+          token_type: 'bearer',
+          user: demoUser,
+        };
+        localStorage.setItem('mom_demo_session', JSON.stringify({
+          ...demoSession,
+          profile: { id: demoAcc.id, name: demoAcc.name },
+        }));
+        setSession(demoSession);
+        setUser(demoUser);
+        setProfile({ id: demoAcc.id, name: demoAcc.name });
+        setTimeout(() => {
+          fetchProfile();
+        }, 0);
+        return { user: demoUser, session: demoSession };
+      }
+
       setAuthError(err.message || 'Failed to sign in');
       throw err;
     }
@@ -174,8 +289,10 @@ export function AuthProvider({ children }) {
 
   const signOut = async () => {
     try {
+      localStorage.removeItem('mom_demo_session');
       await signOutUser();
     } finally {
+      localStorage.removeItem('mom_demo_session');
       setSession(null);
       setUser(null);
       setProfile(null);

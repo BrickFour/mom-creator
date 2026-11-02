@@ -5,6 +5,7 @@ import { Textarea } from '../common/Textarea.jsx';
 import { Button } from '../common/Button.jsx';
 import { Video, Mic, UploadCloud, FileSpreadsheet} from 'lucide-react';
 import { useWorkspace } from '../../context/WorkspaceContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import { createMeeting } from '../../services/meetings.js';
 import { ImportTranscript } from './ImportTranscript.jsx';
@@ -13,7 +14,10 @@ import { createProcessingJob, runProcessingJob, pollProcessingJob } from '../../
 
 export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }) {
   const { currentWorkspace } = useWorkspace();
+  const { user } = useAuth();
   const { showToast } = useToast();
+
+  const isGoogleMeetAllowed = (user?.email || '').trim().toLowerCase() === 'thorataryan0@gmail.com';
 
   const [mode, setMode] = useState('upload');
   const [title, setTitle] = useState('');
@@ -67,6 +71,10 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }) {
     }
     if (!title.trim()) {
       setError('Meeting title is required.');
+      return;
+    }
+    if (mode === 'online' && !isGoogleMeetAllowed) {
+      setError('This feature will be available once the domain is specified.');
       return;
     }
 
@@ -183,33 +191,48 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {modeOptions.map((opt) => {
               const Icon = opt.icon;
-              const isSelected = opt.id === 'online' ? mode === 'online' : mode === opt.id;
+              const isMeetOption = opt.id === 'online';
+              const isDisabled = isMeetOption && !isGoogleMeetAllowed;
+              const isSelected = !isDisabled && (opt.id === 'online' ? mode === 'online' : mode === opt.id);
               return (
                 <button
                   key={opt.id}
                   type="button"
-                  onClick={() => setMode(opt.id)}
-                  className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all cursor-pointer ${
-                    isSelected
-                      ? 'border-brand-gradient bg-indigo-50/60 ring-1 ring-brand-gradient'
-                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                  disabled={isDisabled}
+                  onClick={() => !isDisabled && setMode(opt.id)}
+                  title={isDisabled ? 'This feature will be available once the domain is specified.' : undefined}
+                  className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all ${
+                    isDisabled
+                      ? 'border-slate-200 bg-slate-50/70 opacity-60 cursor-not-allowed'
+                      : isSelected
+                      ? 'border-brand-gradient bg-indigo-50/60 ring-1 ring-brand-gradient cursor-pointer'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 cursor-pointer'
                   }`}
                 >
                   <div
                     className={`p-2 rounded-lg shrink-0 ${
-                      isSelected
+                      isDisabled
+                        ? 'bg-slate-200 text-slate-400'
+                        : isSelected
                         ? 'bg-brand-gradient text-white'
                         : 'bg-slate-100 text-slate-500'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
                   </div>
-                  <div className="min-w-0">
-                    <p className={`text-xs font-semibold ${isSelected ? 'text-indigo-900' : 'text-slate-900'}`}>
-                      {opt.title}
-                    </p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-1">
+                      <p className={`text-xs font-semibold ${isSelected ? 'text-indigo-900' : 'text-slate-900'}`}>
+                        {opt.title}
+                      </p>
+                      {isDisabled && (
+                        <span className="text-[9px] font-medium text-amber-700 bg-amber-50 border border-amber-200/60 px-1 rounded">
+                          Coming Soon
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                      {opt.desc}
+                      {isDisabled ? 'This feature will be available once the domain is specified.' : opt.desc}
                     </p>
                   </div>
                 </button>

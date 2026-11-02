@@ -5,7 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import RedirectResponse
 from supabase import Client
 
-from app.core.security import get_access_token, get_supabase
+from app.core.security import (
+    get_access_token,
+    get_supabase,
+    get_authenticated_user,
+)
 from app.core.config import get_settings
 from app.services.google_meet import (
     GoogleMeetAPIError,
@@ -20,6 +24,8 @@ from app.services.google_oauth import (
 )
 from app.services.supabase import create_admin_supabase_client
 
+ALLOWED_GOOGLE_MEET_EMAIL = "thorataryan0@gmail.com"
+GOOGLE_MEET_UNAVAILABLE_MSG = "This feature will be available once the domain is specified."
 
 settings = get_settings()
 
@@ -27,29 +33,6 @@ router = APIRouter(
     prefix="/api/v1/integrations/google",
     tags=["Google Meet"],
 )
-
-
-def get_authenticated_user(
-    supabase: Client,
-    access_token: str,
-):
-    try:
-        response = supabase.auth.get_user(access_token)
-    except Exception as exc:
-        raise HTTPException(
-            status_code=401,
-            detail=f"Invalid authentication token: {exc}",
-        )
-
-    user = response.user
-
-    if user is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authentication token",
-        )
-
-    return user
 
 
 def frontend_redirect(status: str) -> RedirectResponse:
@@ -69,6 +52,12 @@ async def connect_google_meet(
         supabase,
         access_token,
     )
+
+    if (user.email or "").strip().lower() != ALLOWED_GOOGLE_MEET_EMAIL:
+        raise HTTPException(
+            status_code=403,
+            detail=GOOGLE_MEET_UNAVAILABLE_MSG,
+        )
 
     try:
         authorization_url = build_google_authorization_url(user.id)
@@ -124,6 +113,12 @@ async def create_google_meet_for_meeting(
         supabase,
         access_token,
     )
+
+    if (user.email or "").strip().lower() != ALLOWED_GOOGLE_MEET_EMAIL:
+        raise HTTPException(
+            status_code=403,
+            detail=GOOGLE_MEET_UNAVAILABLE_MSG,
+        )
 
     meeting_response = (
         supabase
@@ -262,6 +257,12 @@ async def get_google_meet_for_meeting(
         access_token,
     )
 
+    if (user.email or "").strip().lower() != ALLOWED_GOOGLE_MEET_EMAIL:
+        raise HTTPException(
+            status_code=403,
+            detail=GOOGLE_MEET_UNAVAILABLE_MSG,
+        )
+
     meeting_response = (
         supabase
         .table("meetings")
@@ -305,6 +306,12 @@ async def sync_google_meet_transcript(
         supabase,
         access_token,
     )
+
+    if (user.email or "").strip().lower() != ALLOWED_GOOGLE_MEET_EMAIL:
+        raise HTTPException(
+            status_code=403,
+            detail=GOOGLE_MEET_UNAVAILABLE_MSG,
+        )
 
     meeting_response = (
         supabase

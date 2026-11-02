@@ -3,12 +3,15 @@ import { Video, ExternalLink, RefreshCw, Copy, Check, Plus } from 'lucide-react'
 import { Button } from '../common/Button.jsx';
 import { createGoogleMeet, getGoogleMeet, syncGoogleMeetTranscript, connectGoogleMeet } from '../../services/googleMeet.js';
 import { useToast } from '../../context/ToastContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 export function GoogleMeetCard({
   meetingId,
   onTranscriptSynced,
 }) {
+  const { user } = useAuth();
   const { showToast } = useToast();
+  const isGoogleMeetAllowed = (user?.email || '').trim().toLowerCase() === 'thorataryan0@gmail.com';
   const [meetData, setMeetData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -16,6 +19,7 @@ export function GoogleMeetCard({
   const [copied, setCopied] = useState(false);
 
   const fetchMeet = async () => {
+    if (!isGoogleMeetAllowed) return;
     setLoading(true);
     try {
       const data = await getGoogleMeet(meetingId);
@@ -40,6 +44,10 @@ export function GoogleMeetCard({
   }, [meetingId]);
 
   const handleCreateMeet = async () => {
+    if (!isGoogleMeetAllowed) {
+      showToast('This feature will be available once the domain is specified.', 'warning');
+      return;
+    }
     setCreating(true);
     try {
       const res = await createGoogleMeet(meetingId);
@@ -67,6 +75,10 @@ export function GoogleMeetCard({
   };
 
   const handleSyncTranscript = async () => {
+    if (!isGoogleMeetAllowed) {
+      showToast('This feature will be available once the domain is specified.', 'warning');
+      return;
+    }
     setSyncing(true);
     try {
       const res = await syncGoogleMeetTranscript(meetingId);
@@ -109,7 +121,12 @@ export function GoogleMeetCard({
         </div>
       </div>
 
-      {!meetData ? (
+      {!isGoogleMeetAllowed ? (
+        <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+          <p className="font-semibold mb-0.5">Google Meet is currently disabled</p>
+          <p>This feature will be available once the domain is specified.</p>
+        </div>
+      ) : !meetData ? (
         <div className="py-4 text-center space-y-3">
           <p className="text-xs text-slate-600 max-w-sm mx-auto">
             Create a Google Meet space linked to this meeting.
