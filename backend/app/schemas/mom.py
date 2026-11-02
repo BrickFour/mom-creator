@@ -52,3 +52,25 @@ class MOMResponse(BaseModel):
     generated_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class MOMShareRequest(BaseModel):
+    """
+    Request payload to share/assign a MOM to another workspace.
+    """
+    target_workspace_id: str = Field(
+        ...,
+        description="The UUID of the destination workspace to assign this MOM to",
+    )
+
+
+class MOMShareResponse(BaseModel):
+    """
+    Response returned after sharing a MOM to another workspace.
+    """
+    success: bool
+    message: str
+    target_workspace_id: str
+    target_workspace_name: str
+    new_meeting_id: str
+    new_mom_id: str

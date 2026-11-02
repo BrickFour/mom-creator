@@ -7,6 +7,7 @@ import {
   Save,
   X,
   ChevronDown,
+  Share2,
 } from 'lucide-react';
 
 import { Button } from '../common/Button.jsx';
@@ -24,6 +25,7 @@ export function MOMEditor({
   mom,
   meeting,
   onReload,
+  onShareMOM,
 }) {
   const { showToast } = useToast();
 
@@ -298,6 +300,19 @@ export function MOMEditor({
                 </Button>
               )}
             </>
+          )}
+
+          {/* Share MOM */}
+          {onShareMOM && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onShareMOM}
+              icon={Share2}
+              title="Share or assign this MOM to another workspace using ID"
+            >
+              Share MOM
+            </Button>
           )}
 
           {/* PDF Export */}

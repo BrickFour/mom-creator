@@ -12,6 +12,8 @@ import {
   Upload,
   Trash2,
   RefreshCw,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 import {
@@ -32,6 +34,19 @@ export function WorkspaceSettingsModal({ isOpen, onClose }) {
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [uploadingTemplate, setUploadingTemplate] = useState(false);
   const [deletingTemplate, setDeletingTemplate] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyId = async () => {
+    if (!currentWorkspace?.id) return;
+    try {
+      await navigator.clipboard.writeText(currentWorkspace.id);
+      setCopied(true);
+      showToast('Workspace ID copied to clipboard', 'success');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      showToast('Failed to copy ID: ' + (err?.message || err), 'error');
+    }
+  };
 
   useEffect(() => {
     if (isOpen && currentWorkspace) {
@@ -174,6 +189,32 @@ export function WorkspaceSettingsModal({ isOpen, onClose }) {
             required
             error={error}
           />
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              Workspace ID
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={currentWorkspace.id}
+                className="w-full font-mono text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 select-all focus:outline-none"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleCopyId}
+                icon={copied ? Check : Copy}
+              >
+                {copied ? 'Copied' : 'Copy ID'}
+              </Button>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Share this ID with other workspace owners to allow them to assign MOMs to this workspace.
+            </p>
+          </div>
         </div>
         <div className="space-y-4 pt-3 border-t border-slate-100">
           <div>

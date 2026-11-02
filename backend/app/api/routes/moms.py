@@ -1,11 +1,42 @@
+from datetime import datetime, timezone
+import logging
+from uuid import UUID, uuid4
+
 from fastapi import APIRouter, Depends, HTTPException
 from supabase import Client
 
-from app.core.security import get_supabase
+from app.core.security import get_access_token, get_supabase
 from app.schemas.mom import (
     MOMResponse,
+    MOMShareRequest,
+    MOMShareResponse,
     MOMUpdate,
 )
+from app.services.supabase import create_admin_supabase_client
+
+logger = logging.getLogger(__name__)
+
+
+def get_authenticated_user(
+    supabase: Client,
+    access_token: str,
+):
+    try:
+        response = supabase.auth.get_user(access_token)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid authentication token: {exc}",
+        )
+
+    user = response.user
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication token",
+        )
+
+    return user
 
 
 router = APIRouter(
@@ -588,3 +619,257 @@ async def finalize_mom(
         )
 
     return response.data[0]
+
+
+# ============================================================
+# SHARE / ASSIGN MOM TO WORKSPACE
+# ============================================================
+
+@router.post(
+    "/{mom_id}/share",
+    response_model=MOMShareResponse,
+)
+async def share_mom_to_workspace(
+    mom_id: str,
+    payload: MOMShareRequest,
+    supabase: Client = Depends(get_supabase),
+    access_token: str = Depends(get_access_token),
+):
+    """
+    Assign/share a MOM to another workspace using the target workspace ID.
+    Only the owner of the source workspace containing the MOM can assign it.
+    This clones the meeting, MOM, action items, and participants into the target workspace.
+    """
+    # 1. Authenticate user
+    user = get_authenticated_user(supabase, access_token)
+
+    # 2. Validate target_workspace_id format
+    raw_target_id = payload.target_workspace_id.strip()
+    if not raw_target_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Target workspace ID cannot be empty",
+        )
+    try:
+        target_uuid = UUID(raw_target_id)
+        target_workspace_id = str(target_uuid)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid target workspace ID format. Must be a valid UUID.",
+        )
+
+    # 3. Retrieve source MOM using admin client
+    admin_supabase = create_admin_supabase_client()
+    source_mom_res = (
+        admin_supabase
+        .table("moms")
+        .select("*")
+        .eq("id", mom_id)
+        .execute()
+    )
+    if not source_mom_res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="MOM not found",
+        )
+    source_mom = source_mom_res.data[0]
+
+    # 4. Retrieve source meeting
+    meeting_id = source_mom.get("meeting_id")
+    source_meeting_res = (
+        admin_supabase
+        .table("meetings")
+        .select("*")
+        .eq("id", meeting_id)
+        .execute()
+    )
+    if not source_meeting_res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Meeting associated with this MOM not found",
+        )
+    source_meeting = source_meeting_res.data[0]
+    source_workspace_id = source_meeting.get("workspace_id")
+
+    # 5. Check if target workspace is identical to source
+    if str(source_workspace_id) == target_workspace_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot assign MOM to the same workspace",
+        )
+
+    # 6. Verify caller is workspace owner of source workspace
+    source_ws_res = (
+        admin_supabase
+        .table("workspaces")
+        .select("id, name, created_by")
+        .eq("id", source_workspace_id)
+        .execute()
+    )
+    if not source_ws_res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Source workspace not found",
+        )
+    source_workspace = source_ws_res.data[0]
+
+    is_owner = False
+    if str(source_workspace.get("created_by")) == str(user.id):
+        is_owner = True
+    else:
+        membership_res = (
+            admin_supabase
+            .table("workspace_members")
+            .select("role")
+            .eq("workspace_id", source_workspace_id)
+            .eq("user_id", user.id)
+            .execute()
+        )
+        if membership_res.data and membership_res.data[0].get("role") == "owner":
+            is_owner = True
+
+    if not is_owner:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the workspace owner can assign or share this MOM to another workspace",
+        )
+
+    # 7. Verify target workspace exists
+    target_ws_res = (
+        admin_supabase
+        .table("workspaces")
+        .select("id, name, created_by")
+        .eq("id", target_workspace_id)
+        .execute()
+    )
+    if not target_ws_res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Target workspace not found. Please verify the Workspace ID.",
+        )
+    target_workspace = target_ws_res.data[0]
+    target_owner_id = target_workspace.get("created_by") or user.id
+
+    # 8. Clone Meeting into Target Workspace
+    new_meeting_id = str(uuid4())
+    meeting_title = source_meeting.get("title", "Meeting")
+    meeting_desc = source_meeting.get("description") or ""
+
+    try:
+        admin_supabase.table("meetings").insert({
+            "id": new_meeting_id,
+            "workspace_id": target_workspace_id,
+            "created_by": target_owner_id,
+            "title": meeting_title,
+            "description": meeting_desc,
+            "mode": source_meeting.get("mode") or "import",
+            "status": "completed",
+            "meeting_date": source_meeting.get("meeting_date"),
+            "venue": source_meeting.get("venue"),
+            "duration_seconds": source_meeting.get("duration_seconds"),
+        }).execute()
+    except Exception as exc:
+        logger.error(f"Failed to create meeting in target workspace: {exc}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create meeting in target workspace: {exc}",
+        )
+
+    # 9. Clone MOM into Target Workspace
+    new_mom_id = str(uuid4())
+    now_iso = datetime.now(timezone.utc).isoformat()
+    try:
+        admin_supabase.table("moms").insert({
+            "id": new_mom_id,
+            "meeting_id": new_meeting_id,
+            "created_by": target_owner_id,
+            "title": source_mom.get("title", meeting_title),
+            "summary": source_mom.get("summary"),
+            "transcript": source_mom.get("transcript"),
+            "key_discussion_points": source_mom.get("key_discussion_points") or [],
+            "decisions": source_mom.get("decisions") or [],
+            "next_steps": source_mom.get("next_steps") or [],
+            "abbreviations_used": source_mom.get("abbreviations_used") or {},
+            "status": source_mom.get("status") or "draft",
+            "generated_at": source_mom.get("generated_at") or now_iso,
+        }).execute()
+    except Exception as exc:
+        logger.error(f"Failed to create MOM in target workspace: {exc}")
+        try:
+            admin_supabase.table("meetings").delete().eq("id", new_meeting_id).execute()
+        except Exception:
+            pass
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create MOM in target workspace: {exc}",
+        )
+
+    # 10. Copy Action Items
+    try:
+        action_items_res = (
+            admin_supabase
+            .table("action_items")
+            .select("*")
+            .eq("mom_id", mom_id)
+            .execute()
+        )
+        if action_items_res.data:
+            target_members_res = (
+                admin_supabase
+                .table("workspace_members")
+                .select("user_id")
+                .eq("workspace_id", target_workspace_id)
+                .execute()
+            )
+            target_member_ids = {m["user_id"] for m in (target_members_res.data or [])}
+
+            for item in action_items_res.data:
+                assigned_to_id = item.get("assigned_to")
+                valid_assigned_to = (
+                    assigned_to_id if assigned_to_id in target_member_ids else None
+                )
+                admin_supabase.table("action_items").insert({
+                    "id": str(uuid4()),
+                    "mom_id": new_mom_id,
+                    "meeting_id": new_meeting_id,
+                    "created_by": target_owner_id,
+                    "task": item.get("task", ""),
+                    "assigned_to": valid_assigned_to,
+                    "assigned_name": item.get("assigned_name"),
+                    "due_date": item.get("due_date"),
+                    "priority": item.get("priority") or "medium",
+                    "completed_at": item.get("completed_at"),
+                }).execute()
+    except Exception as exc:
+        logger.warning(f"Error copying action items to target workspace: {exc}")
+
+    # 11. Copy Meeting Participants
+    try:
+        participants_res = (
+            admin_supabase
+            .table("meeting_participants")
+            .select("*")
+            .eq("meeting_id", meeting_id)
+            .execute()
+        )
+        if participants_res.data:
+            for part in participants_res.data:
+                admin_supabase.table("meeting_participants").insert({
+                    "meeting_id": new_meeting_id,
+                    "name": part.get("name", "Participant"),
+                    "email": part.get("email"),
+                    "role": part.get("role"),
+                    "created_by": target_owner_id,
+                }).execute()
+    except Exception as exc:
+        logger.warning(f"Error copying participants to target workspace: {exc}")
+
+    return MOMShareResponse(
+        success=True,
+        message=f"MOM successfully assigned to workspace '{target_workspace['name']}'",
+        target_workspace_id=target_workspace_id,
+        target_workspace_name=target_workspace["name"],
+        new_meeting_id=new_meeting_id,
+        new_mom_id=new_mom_id,
+    )

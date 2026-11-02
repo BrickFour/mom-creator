@@ -28,6 +28,7 @@ import { GoogleMeetCard } from '../components/integrations/GoogleMeetCard.jsx';
 import { ProcessingProgress } from '../components/meeting/ProcessingProgress.jsx';
 import { AttachmentsList } from '../components/meeting/AttachmentsList.jsx';
 import { MOMEditor } from '../components/mom/MOMEditor.jsx';
+import { ShareMOMModal } from '../components/mom/ShareMOMModal.jsx';
 import { ActionItemsTable } from '../components/actionItems/ActionItemsTable.jsx';
 import { MeetingParticipants } from '../components/mom/MeetingParticipants.jsx';
 import { getMeeting, updateMeeting, deleteMeeting } from '../services/meetings.js';
@@ -67,6 +68,9 @@ export function MeetingDetailPage({
   // Delete Meeting Dialog
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Share MOM Modal
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // Processing state
   const [processingStage, setProcessingStage] = useState('idle'); // idle | uploading | transcribing | generating_mom | completed | failed
@@ -415,6 +419,17 @@ export function MeetingDetailPage({
           </div>
 
           <div className="flex items-center gap-2">
+            {mom && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShareModalOpen(true)}
+                icon={Share2}
+                title="Share or assign this MOM to another workspace"
+              >
+                Share MOM
+              </Button>
+            )}
             <Button
               variant="secondary"
               size="sm"
@@ -524,6 +539,7 @@ export function MeetingDetailPage({
           mom={mom}
           meeting={meeting}
           onReload={loadAllData}
+          onShareMOM={() => setShareModalOpen(true)}
         />
       </div>
 
@@ -604,6 +620,18 @@ export function MeetingDetailPage({
         variant="danger"
         loading={deleting}
       />
+
+      {/* Share MOM Modal */}
+      {mom && (
+        <ShareMOMModal
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          mom={mom}
+          meeting={meeting}
+          sourceWorkspace={currentWorkspace}
+          onSuccess={loadAllData}
+        />
+      )}
     </div>
   );
 }

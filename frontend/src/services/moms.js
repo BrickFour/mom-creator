@@ -84,3 +84,15 @@ export async function finalizeMOM(momId) {
     }
   );
 }
+
+export async function shareMOM(momId, targetWorkspaceId) {
+  return await apiRequest(
+    `/api/v1/moms/${momId}/share`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        target_workspace_id: targetWorkspaceId,
+      }),
+    }
+  );
+}

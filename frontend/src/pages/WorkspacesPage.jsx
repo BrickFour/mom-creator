@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Building2, Plus, Settings, Users } from 'lucide-react';
+import { Building2, Plus, Settings, Users, Copy, Check } from 'lucide-react';
 
 import { Button } from '../components/common/Button.jsx';
 import { CreateWorkspaceModal } from '../components/workspace/CreateWorkspaceModal.jsx';
@@ -8,6 +8,7 @@ import { WorkspaceMembers } from '../components/workspace/WorkspaceMembers.jsx';
 
 import { useWorkspace } from '../context/WorkspaceContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
 import { getWorkspaceMembers } from '../services/workspaces.js';
 
 export function WorkspacesPage({ onNavigate }) {
@@ -19,9 +20,24 @@ export function WorkspacesPage({ onNavigate }) {
   } = useWorkspace();
 
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
+
+  const handleCopyId = async (id) => {
+    try {
+      await navigator.clipboard.writeText(id);
+      setCopiedId(id);
+      showToast('Workspace ID copied to clipboard', 'success');
+      setTimeout(() => {
+        setCopiedId((curr) => (curr === id ? null : curr));
+      }, 2000);
+    } catch (err) {
+      showToast('Failed to copy ID: ' + (err?.message || err), 'error');
+    }
+  };
 
   const initialIsOwner = Boolean(
     currentWorkspace?.created_by && user?.id && currentWorkspace.created_by === user.id
@@ -191,6 +207,42 @@ export function WorkspacesPage({ onNavigate }) {
                   </Button>
                 )}
 
+              </div>
+
+              {/* Workspace ID & Copy */}
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div
+                  className="flex items-center gap-1.5 min-w-0 font-mono text-[11px] text-slate-500 bg-slate-50 border border-slate-200/60 rounded-md px-2 py-1 select-all"
+                  title={ws.id}
+                >
+                  <span className="font-sans font-medium text-slate-400 select-none">
+                    ID:
+                  </span>
+                  <span className="truncate">{ws.id}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleCopyId(ws.id)}
+                  className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors shrink-0 cursor-pointer ${
+                    copiedId === ws.id
+                      ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                      : 'text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 border border-transparent'
+                  }`}
+                  title="Copy Workspace ID"
+                >
+                  {copiedId === ws.id ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Copy ID</span>
+                    </>
+                  )}
+                </button>
               </div>
 
             </div>
