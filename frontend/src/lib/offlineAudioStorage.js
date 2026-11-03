@@ -42,6 +42,7 @@ export async function saveOfflineRecording({
   blob,
   duration,
   detectedExt,
+  missingAudioSeconds,
 }) {
   if (!meetingId || !blob) return;
 
@@ -56,6 +57,7 @@ export async function saveOfflineRecording({
         blob,
         duration: Number(duration) || 0,
         detectedExt: detectedExt || 'webm',
+        missingAudioSeconds: Number(missingAudioSeconds) || 0,
         savedAt: Date.now(),
       };
 

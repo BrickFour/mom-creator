@@ -47,6 +47,11 @@ export function BrowserRecorder({
   );
   const [recoveredFromStorage, setRecoveredFromStorage] = useState(false);
   const [storageSaveStatus, setStorageSaveStatus] = useState(null);
+  // Total seconds where the mic was muted (screen locked / app backgrounded /
+  // call) and therefore NOT actually captured, even though the wall-clock
+  // timer kept running. This is a hard mobile-OS restriction, not something
+  // we can record through — so we track and disclose it instead of hiding it.
+  const [missingAudioSeconds, setMissingAudioSeconds] = useState(0);
 
   const mediaRecorderRef = useRef(null);
   const mediaStreamRef = useRef(null);
@@ -70,6 +75,14 @@ export function BrowserRecorder({
   // the whole recording, only whatever happened since the last autosave.
   const autosaveTimerRef = useRef(null);
   const isPausedRef = useRef(false);
+  // When the mic track mutes (OS-level, due to backgrounding/screen-lock/call)
+  // we record the timestamp here so we can measure exactly how long audio
+  // capture was actually interrupted once it unmutes.
+  const gapStartRef = useRef(null);
+  // Authoritative running total of missing-audio seconds (refs stay live
+  // inside stale closures like mediaRecorder.onstop; the state var above is
+  // only for rendering it).
+  const missingAudioRef = useRef(0);
 
   // Request screen wake lock to keep screen awake during meeting
   const requestWakeLock = async () => {
@@ -136,6 +149,8 @@ export function BrowserRecorder({
           setAudioUrl(url);
           setDuration(saved.duration || 0);
           setDetectedExt(saved.detectedExt || 'webm');
+          missingAudioRef.current = saved.missingAudioSeconds || 0;
+          setMissingAudioSeconds(missingAudioRef.current);
           setRecordingState('stopped');
           setRecoveredFromStorage(true);
           setStorageSaveStatus('saved');
@@ -278,6 +293,9 @@ export function BrowserRecorder({
     setPermissionError('');
     setInterruptedByCall(false);
     isPausedRef.current = false;
+    gapStartRef.current = null;
+    missingAudioRef.current = 0;
+    setMissingAudioSeconds(0);
     chunksRef.current = [];
 
     try {
@@ -297,15 +315,19 @@ export function BrowserRecorder({
         // Mobile browsers mute this track both for real incoming calls AND
         // just for backgrounding the tab / locking the screen (a normal part
         // of recording an "offline" meeting with the phone in a pocket).
-        // We used to auto-pause the MediaRecorder here and wait for the user
-        // to tap "Resume" — but with the screen locked, that tap never
-        // happens, so the recording stayed paused for the rest of the
-        // meeting and only the first second or two ever got captured. Instead,
-        // just surface a notice and keep the recorder running: the track
-        // emits silence while muted, so nothing is lost once it unmutes.
+        // While muted, the OS does NOT deliver any audio frames at all —
+        // capture genuinely stops (it is not simply replaced with silence),
+        // while our own wall-clock timer keeps ticking regardless. This is a
+        // mobile browser/OS privacy restriction on background microphone
+        // access that no amount of JS pause/resume logic can override, so
+        // rather than pretend recording "continues", we measure exactly how
+        // long each interruption lasted and disclose it to the user.
         audioTrack.addEventListener('mute', () => {
-          console.warn('Microphone track muted by OS (incoming call, background tab, or system interruption)');
+          console.warn('Microphone track muted by OS (incoming call, background tab, or system interruption) — audio capture paused until it unmutes');
           setInterruptedByCall(true);
+          if (!gapStartRef.current) {
+            gapStartRef.current = Date.now();
+          }
           if ('vibrate' in navigator) {
             try {
               navigator.vibrate([200, 100, 200]);
@@ -315,10 +337,18 @@ export function BrowserRecorder({
           }
         });
 
-        // When the interruption ends, track unmutes
+        // When the interruption ends, track unmutes and capture resumes
         audioTrack.addEventListener('unmute', () => {
-          console.info('Microphone track unmuted');
+          console.info('Microphone track unmuted — audio capture resumed');
           setInterruptedByCall(false);
+          if (gapStartRef.current) {
+            const gapSeconds = Math.round((Date.now() - gapStartRef.current) / 1000);
+            gapStartRef.current = null;
+            if (gapSeconds > 0) {
+              missingAudioRef.current += gapSeconds;
+              setMissingAudioSeconds(missingAudioRef.current);
+            }
+          }
         });
 
         // Handle unexpected disconnection (e.g. bluetooth mic pulled out)
@@ -368,6 +398,18 @@ export function BrowserRecorder({
           autosaveTimerRef.current = null;
         }
 
+        // If still muted when stopped, close out the open gap so it's
+        // reflected in the final missing-audio total.
+        if (gapStartRef.current) {
+          const gapSeconds = Math.round((Date.now() - gapStartRef.current) / 1000);
+          gapStartRef.current = null;
+          if (gapSeconds > 0) {
+            missingAudioRef.current += gapSeconds;
+          }
+        }
+        const finalMissingAudioSeconds = missingAudioRef.current;
+        setMissingAudioSeconds(finalMissingAudioSeconds);
+
         const finalType = mimeType || mediaRecorder.mimeType || 'audio/webm';
         const blob = new Blob(chunksRef.current, { type: finalType });
         setAudioBlob(blob);
@@ -395,6 +437,7 @@ export function BrowserRecorder({
             blob,
             duration: finalDuration,
             detectedExt: ext,
+            missingAudioSeconds: finalMissingAudioSeconds,
           });
           setStorageSaveStatus('saved');
         } catch (saveErr) {
@@ -452,6 +495,7 @@ export function BrowserRecorder({
             blob: partialBlob,
             duration: elapsed,
             detectedExt: ext,
+            missingAudioSeconds: missingAudioRef.current,
           }).catch((err) => {
             console.warn('Periodic offline autosave failed:', err);
           });
@@ -556,6 +600,9 @@ export function BrowserRecorder({
     setIsSubmitting(false);
     setRecoveredFromStorage(false);
     setStorageSaveStatus(null);
+    gapStartRef.current = null;
+    missingAudioRef.current = 0;
+    setMissingAudioSeconds(0);
 
     if (autosaveTimerRef.current) {
       clearInterval(autosaveTimerRef.current);
@@ -688,11 +735,21 @@ export function BrowserRecorder({
         <div className="flex items-start gap-3 p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs animate-pulse">
           <PhoneCall className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
           <div className="space-y-1">
-            <p className="font-semibold">Audio Interruption Detected</p>
+            <p className="font-semibold">Not Recording Right Now</p>
             <p className="text-[11px] text-amber-800">
-              Your microphone was briefly muted (e.g. an incoming call, or the screen locked / app backgrounded). Recording is continuing automatically — no action needed.
+              Your microphone is muted (incoming call, screen locked, or this tab is in the background). Mobile browsers block audio capture while this happens, so this part of the meeting is not being recorded — the timer keeps counting, but audio will resume automatically as soon as this tab is active again.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Cumulative missing-audio disclosure, visible any time it's non-zero */}
+      {missingAudioSeconds > 0 && !interruptedByCall && (
+        <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+          <p className="text-[11px]">
+            <span className="font-semibold">~{formatTime(missingAudioSeconds)} of audio may be missing</span> — your screen locked or this tab went to the background during that time, which mobile browsers don't allow recording through.
+          </p>
         </div>
       )}
 
@@ -705,7 +762,7 @@ export function BrowserRecorder({
           <div className="space-y-1 max-w-sm">
             <h4 className="text-sm font-bold text-slate-900">Offline Meeting Recorder</h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Record conversations, boardroom meetings, or interviews. Screen-off protection and call auto-pause are enabled.
+              Record conversations, boardroom meetings, or interviews. We'll try to keep the screen awake, but mobile browsers pause audio capture if the screen locks or this tab goes to the background — keep it open and in view for a complete recording.
             </p>
           </div>
           <div className="pt-2">
@@ -752,7 +809,7 @@ export function BrowserRecorder({
             </div>
             <p className="text-[11px] text-slate-400 font-medium">
               {recordingState === 'recording'
-                ? 'Screen-off & background keep-alive active'
+                ? 'Keep this tab open & screen on to avoid gaps'
                 : 'Timer paused · Tap resume to continue'}
             </p>
           </div>
@@ -828,6 +885,12 @@ export function BrowserRecorder({
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <span>Auto-saved to device offline storage</span>
                 </div>
+                {missingAudioSeconds > 0 && (
+                  <div className="flex items-center gap-1 mt-1 text-[11px] text-amber-700 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>~{formatTime(missingAudioSeconds)} may be missing (screen lock / background interruptions)</span>
+                  </div>
+                )}
               </div>
             </div>
             {audioUrl && (
