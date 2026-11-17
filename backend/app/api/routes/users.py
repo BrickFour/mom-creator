@@ -25,7 +25,6 @@ async def get_current_user(
 ):
     """
     Return the currently authenticated user and their profile.
-    Supports both standard Supabase tokens and demo accounts.
     """
     user = get_authenticated_user(
         supabase,
@@ -51,7 +50,7 @@ async def get_current_user(
     profile_data = response.data[0] if response.data else None
 
     if profile_data is None:
-        # If demo user profile is being created on the fly
+        # Create the profile on the fly if it does not exist yet
         name = (user.user_metadata or {}).get("name") if hasattr(user, "user_metadata") else user.email
         try:
             insert_res = supabase.table("profiles").insert({"id": user.id, "name": name}).execute()
