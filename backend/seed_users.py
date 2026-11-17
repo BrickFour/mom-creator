@@ -28,7 +28,7 @@ USERS_DATA = [
     {"name": "Shailesh Kerkar", "email": "shailesh@brickfour.com", "password": "Shailesh@123"},
     {"name": "Santosh Kotgire", "email": "s.kotgire@brickfour.com", "password": "Santosh@123"},
     {"name": "Amol Umesh Biradar", "email": "amolbiradar218@gmail.com", "password": "Amol@123"},
-    {"name": "Charuta Kulkarni", "email": "kulkarnicharuta1999@gmail.com", "password": "Charuta@123"},
+    {"name": "Charuta Kulkarni", "email": "executive@brickfour.com", "password": "Charuta@123"},
     {"name": "Pramod Chavan", "email": "pramod.chavan@brickfour.com", "password": "Pramod@123"},
     {"name": "Rahul Gundappa Gaikwad", "email": "rahulgaikwad11111@gmail.com", "password": "Rahul@123"},
     {"name": "Yash Balasaheb Sabale", "email": "techsupport@brickfour.com", "password": "Yash@123"},

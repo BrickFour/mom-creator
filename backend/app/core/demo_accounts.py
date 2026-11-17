@@ -14,7 +14,7 @@ DEMO_ACCOUNTS = [
     {"name": "Shailesh Kerkar", "email": "shailesh@brickfour.com", "password": "Shailesh@123", "id": "abdf0eba-e194-48c7-b0bd-2bc2d7d98a01"},
     {"name": "Santosh Kotgire", "email": "s.kotgire@brickfour.com", "password": "Santosh@123", "id": "41653acb-f0af-4a6f-9222-ac5bb45e1a00"},
     {"name": "Amol Umesh Biradar", "email": "amolbiradar218@gmail.com", "password": "Amol@123", "id": "1e7f1f01-b4c6-4e39-aa79-27fa8433a3e9"},
-    {"name": "Charuta Kulkarni", "email": "kulkarnicharuta1999@gmail.com", "password": "Charuta@123", "id": "2d53c76d-ee75-4402-a803-3297373f3253"},
+    {"name": "Charuta Kulkarni", "email": "executive@brickfour.com", "password": "Charuta@123", "id": "2d53c76d-ee75-4402-a803-3297373f3253"},
     {"name": "Pramod Chavan", "email": "pramod.chavan@brickfour.com", "password": "Pramod@123", "id": "89c6ac70-e987-403b-99ed-b6afcb496ab0"},
     {"name": "Rahul Gundappa Gaikwad", "email": "rahulgaikwad11111@gmail.com", "password": "Rahul@123", "id": "0a2b365e-a550-48f4-bc6e-b4020b203857"},
     {"name": "Yash Balasaheb Sabale", "email": "techsupport@brickfour.com", "password": "Yash@123", "id": "2fcaa76d-7ecc-42ed-945a-05e09d4faf78"},
