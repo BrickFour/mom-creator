@@ -1,7 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import re
+import time
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from supabase import Client
 
 from app.services.supabase import create_admin_supabase_client
-from app.core.security import get_access_token
+from app.core.security import get_access_token, get_supabase, get_authenticated_user
 
 from app.schemas.mom_template import (
     MOMTemplateCreate,
@@ -18,31 +22,13 @@ router = APIRouter(
 
 BUCKET_NAME = "workspace-mom-template"
 
+ALLOWED_TEMPLATE_MIME_TYPES = {
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
 
-def get_current_user_id(access_token: str) -> str:
-    try:
-        supabase = create_admin_supabase_client()
-
-        response = supabase.auth.get_user(access_token)
-
-        if not response or not response.user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication required",
-            )
-
-        return response.user.id
-
-    except HTTPException:
-        raise
-
-    except Exception as exc:
-        print(f"[MOM TEMPLATE AUTH] {exc}")
-
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-        )
+MAX_TEMPLATE_SIZE = 10 * 1024 * 1024
 
 
 def get_workspace_membership(
@@ -156,15 +142,82 @@ def verify_storage_file(
         )
 
 
+@router.post("/workspace/{workspace_id}/upload")
+async def upload_workspace_mom_template_file(
+    workspace_id: str,
+    file: UploadFile = File(...),
+    supabase: Client = Depends(get_supabase),
+    access_token: str = Depends(get_access_token),
+):
+    """
+    Upload a MOM template file to Supabase Storage via the trusted backend.
+
+    Demo accounts never hold a real Supabase Auth session, so a direct
+    browser -> Supabase Storage upload is rejected by RLS as anonymous.
+    This endpoint re-checks workspace ownership and performs the storage
+    write with the service-role client instead.
+    """
+
+    user_id = get_authenticated_user(supabase, access_token).id
+    admin_supabase = create_admin_supabase_client()
+
+    require_owner(
+        admin_supabase,
+        workspace_id,
+        user_id,
+    )
+
+    if file.content_type not in ALLOWED_TEMPLATE_MIME_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only PDF, DOC, and DOCX files are supported",
+        )
+
+    contents = await file.read()
+
+    if len(contents) > MAX_TEMPLATE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size must be 10 MB or less",
+        )
+
+    safe_name = re.sub(r"[^\w.\- ]+", "", file.filename or "template").strip()
+    safe_name = re.sub(r"\s+", "-", safe_name)
+    file_path = f"{workspace_id}/{int(time.time() * 1000)}-{safe_name}"
+
+    try:
+        admin_supabase.storage.from_(BUCKET_NAME).upload(
+            file_path,
+            contents,
+            {
+                "content-type": file.content_type or "application/octet-stream",
+                "upsert": "false",
+            },
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload to storage: {exc}",
+        )
+
+    return {
+        "file_path": file_path,
+        "file_name": file.filename,
+        "file_type": file.content_type,
+        "file_size": len(contents),
+    }
+
+
 @router.get(
     "/workspace/{workspace_id}",
     response_model=MOMTemplateResponse | None,
 )
 def get_workspace_mom_template(
     workspace_id: str,
+    supabase: Client = Depends(get_supabase),
     access_token: str = Depends(get_access_token),
 ):
-    user_id = get_current_user_id(access_token)
+    user_id = get_authenticated_user(supabase, access_token).id
     admin_supabase = create_admin_supabase_client()
 
     require_member(
@@ -195,9 +248,10 @@ def get_workspace_mom_template(
 def create_workspace_mom_template(
     workspace_id: str,
     payload: MOMTemplateCreate,
+    supabase: Client = Depends(get_supabase),
     access_token: str = Depends(get_access_token),
 ):
-    user_id = get_current_user_id(access_token)
+    user_id = get_authenticated_user(supabase, access_token).id
     admin_supabase = create_admin_supabase_client()
 
     require_owner(
@@ -271,9 +325,10 @@ def create_workspace_mom_template(
 def update_workspace_mom_template(
     workspace_id: str,
     payload: MOMTemplateUpdate,
+    supabase: Client = Depends(get_supabase),
     access_token: str = Depends(get_access_token),
 ):
-    user_id = get_current_user_id(access_token)
+    user_id = get_authenticated_user(supabase, access_token).id
     admin_supabase = create_admin_supabase_client()
 
     require_owner(
@@ -351,9 +406,10 @@ def update_workspace_mom_template(
 )
 def delete_workspace_mom_template(
     workspace_id: str,
+    supabase: Client = Depends(get_supabase),
     access_token: str = Depends(get_access_token),
 ):
-    user_id = get_current_user_id(access_token)
+    user_id = get_authenticated_user(supabase, access_token).id
     admin_supabase = create_admin_supabase_client()
 
     require_owner(

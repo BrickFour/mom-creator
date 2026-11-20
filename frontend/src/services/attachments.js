@@ -1,5 +1,6 @@
 import { apiRequest } from '../lib/api.js';
 import { getSupabase } from '../lib/supabase.js';
+import { hasDemoSession } from '../lib/demoAccounts.js';
 
 export async function uploadToStorage({
   file,
@@ -8,6 +9,33 @@ export async function uploadToStorage({
   meetingId,
   customFileName,
 }) {
+  // Demo accounts never get a real Supabase Auth session (see AuthContext),
+  // so a direct browser -> Supabase Storage upload is rejected by RLS as
+  // anonymous. Route those uploads through the backend, which uploads with
+  // the service-role client after re-checking workspace/meeting ownership.
+  if (hasDemoSession()) {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('bucket', bucket);
+    form.append('workspace_id', workspaceId);
+    form.append('meeting_id', meetingId);
+    if (customFileName) {
+      form.append('custom_file_name', customFileName);
+    }
+
+    const result = await apiRequest('/api/v1/attachments/upload', {
+      method: 'POST',
+      body: form,
+    });
+
+    return {
+      path: result.path,
+      fileName: result.fileName,
+      fileType: result.fileType || file.type || 'application/octet-stream',
+      fileSize: result.fileSize ?? file.size,
+    };
+  }
+
   const supabase = getSupabase();
   if (!supabase) {
     throw new Error('Supabase client is not configured for storage upload.');

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Video, Calendar, CheckCircle2, Link2, RefreshCw, Flame, Unplug } from 'lucide-react';
 import { Button } from '../components/common/Button.jsx';
 import { getGoogleCalendarStatus, connectGoogleCalendar } from '../services/googleCalendar.js';
-import { connectGoogleMeet } from '../services/googleMeet.js';
+import { connectGoogleMeet, disconnectGoogle } from '../services/googleMeet.js';
 import { connectFireflies, disconnectFireflies, getFirefliesStatus } from '../services/fireflies.js';
 import { useWorkspace } from '../context/WorkspaceContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -21,6 +21,7 @@ export function IntegrationsPage() {
   const [connectingCal, setConnectingCal] = useState(false);
   const [connectingFireflies, setConnectingFireflies] = useState(false);
   const [disconnectingFireflies, setDisconnectingFireflies] = useState(false);
+  const [disconnectingGoogle, setDisconnectingGoogle] = useState(false);
 
   const fetchStatus = async () => {
     if (!currentWorkspace?.id) return;
@@ -106,6 +107,21 @@ export function IntegrationsPage() {
     }
   };
 
+  const handleDisconnectGoogle = async () => {
+    if (!window.confirm('Disconnect your Google account? This removes MOM Creator\'s access to Google Meet and Google Calendar and deletes the stored Google credentials. Meetings and transcripts already imported are kept.')) return;
+    setDisconnectingGoogle(true);
+    try {
+      await disconnectGoogle();
+      showToast('Google account disconnected. Access to Google Meet and Calendar was revoked.', 'success');
+      await fetchStatus();
+    } catch (err) {
+      showToast(err.message || 'Failed to disconnect Google account', 'error');
+    } finally {
+      setDisconnectingGoogle(false);
+    }
+  };
+
+  const isGoogleConnected = Boolean(calendarStatus?.connected);
   const isCalConnected = Boolean(calendarStatus?.connected && calendarStatus?.calendar_scope_granted);
   const isFirefliesConnected = Boolean(firefliesStatus?.connected);
 
@@ -142,17 +158,21 @@ export function IntegrationsPage() {
                 )}
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleConnectMeet}
-              loading={connectingMeet}
-              disabled={!isGoogleMeetAllowed}
-              title={!isGoogleMeetAllowed ? 'This feature will be available once the domain is specified.' : undefined}
-              icon={Link2}
-            >
-              Connect Google
-            </Button>
+            {isGoogleMeetAllowed && isGoogleConnected ? (
+              <Button variant="outline" size="sm" onClick={handleDisconnectGoogle} loading={disconnectingGoogle} icon={Unplug}>Disconnect</Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleConnectMeet}
+                loading={connectingMeet}
+                disabled={!isGoogleMeetAllowed}
+                title={!isGoogleMeetAllowed ? 'This feature will be available once the domain is specified.' : undefined}
+                icon={Link2}
+              >
+                Connect Google
+              </Button>
+            )}
           </div>
         </div>
 
@@ -206,7 +226,12 @@ export function IntegrationsPage() {
                 <p className="text-xs text-slate-500 max-w-xl leading-relaxed">Used for scheduling action items to your calendar.</p>
               </div>
             </div>
-            <Button variant={isCalConnected ? 'secondary' : 'primary'} size="sm" onClick={handleConnectCalendar} loading={connectingCal} icon={Link2}>{isCalConnected ? 'Reconnect' : 'Connect Calendar'}</Button>
+            <div className="flex items-center gap-2">
+              <Button variant={isCalConnected ? 'secondary' : 'primary'} size="sm" onClick={handleConnectCalendar} loading={connectingCal} icon={Link2}>{isCalConnected ? 'Reconnect' : 'Connect Calendar'}</Button>
+              {isGoogleConnected && (
+                <Button variant="outline" size="sm" onClick={handleDisconnectGoogle} loading={disconnectingGoogle} icon={Unplug}>Disconnect</Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

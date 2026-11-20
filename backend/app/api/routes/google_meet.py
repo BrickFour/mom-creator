@@ -18,6 +18,7 @@ from app.services.google_meet import (
 )
 from app.services.google_oauth import (
     build_google_authorization_url,
+    disconnect_google_connection,
     exchange_authorization_code,
     save_google_connection,
     verify_oauth_state,
@@ -101,6 +102,33 @@ async def google_meet_callback(
         return frontend_redirect("failed")
 
     return frontend_redirect("connected")
+
+
+@router.delete("/connection")
+async def disconnect_google(
+    supabase: Client = Depends(get_supabase),
+    access_token: str = Depends(get_access_token),
+):
+    """Disconnect Google Meet and Google Calendar for the current user.
+
+    Not gated by ALLOWED_GOOGLE_MEET_EMAIL: any user who connected Google
+    (including via Calendar) must always be able to disconnect.
+    """
+    user = get_authenticated_user(
+        supabase,
+        access_token,
+    )
+
+    try:
+        return await disconnect_google_connection(
+            create_admin_supabase_client(),
+            user.id,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to disconnect Google account: {exc}",
+        ) from exc
 
 
 @router.post("/meetings/{meeting_id}/meet")

@@ -49,3 +49,17 @@ export function findDemoAccount(email) {
   const cleanEmail = email.trim().toLowerCase();
   return DEMO_ACCOUNTS.find((a) => a.email.toLowerCase() === cleanEmail) || null;
 }
+
+/**
+ * Check if a demo session is currently active (see AuthContext).
+ * Demo sessions never hold a real Supabase Auth session, so any code that
+ * would otherwise call Supabase directly from the browser (e.g. Storage
+ * uploads) must route through the backend instead.
+ */
+export function hasDemoSession() {
+  try {
+    return Boolean(localStorage.getItem('mom_demo_session'));
+  } catch {
+    return false;
+  }
+}

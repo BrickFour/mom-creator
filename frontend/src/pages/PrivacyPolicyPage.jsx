@@ -36,7 +36,7 @@ export function PrivacyPolicyPage() {
                 Privacy Policy
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                Last updated: September 2026
+                Last updated: November 2026
               </p>
             </div>
           </div>
@@ -96,6 +96,9 @@ export function PrivacyPolicyPage() {
               <p>
                 Google user data is never sold to third parties, never used for advertising, and never transferred for purposes unrelated to the core functionality of the connected integration.
               </p>
+              <p>
+                MOM Creator does not use Google user data, including Google Meet transcripts and Google Calendar data, to develop, improve, or train generalized or non-personalized artificial intelligence or machine learning models. Google user data is processed by AI services only to generate the Minutes of Meeting, summaries, and action items requested by the user.
+              </p>
             </section>
 
             <section className="space-y-3">
@@ -106,7 +109,8 @@ export function PrivacyPolicyPage() {
                 When you authorize third-party integrations, MOM Creator securely stores the credentials required to maintain the connection. All OAuth refresh tokens are encrypted at rest prior to storage.
               </p>
               <p>
-                Users can disconnect third-party integrations at any time via the application's Integrations page.
+                Users can disconnect third-party integrations at any time via the application's Integrations page. Disconnecting Google revokes MOM Creator's access to your Google account and immediately deletes the stored Google credentials. You can also remove access at any time from your Google Account at{' '}
+                <a href="https://myaccount.google.com/permissions" target="_blank" rel="noreferrer" className="text-blue-600 hover:text-cyan-600 underline">myaccount.google.com/permissions</a>.
               </p>
             </section>
 
@@ -115,7 +119,7 @@ export function PrivacyPolicyPage() {
                 6. Meeting Recordings, Transcripts, and AI Processing
               </h2>
               <p>
-                Meeting recordings and transcripts are processed using secure AI models to generate structured Minutes of Meeting, key decision summaries, and action items.
+                Meeting recordings and transcripts are processed using secure AI models to generate structured Minutes of Meeting, key decision summaries, and action items. Meeting content is sent to these AI services only to produce output for your workspace, and is not used to train AI models.
               </p>
               <p>
                 Users must ensure they possess the necessary legal authority, consent, and authorization to record, transcribe, upload, and process meeting content in accordance with applicable laws.
@@ -133,10 +137,23 @@ export function PrivacyPolicyPage() {
 
             <section className="space-y-3">
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-2">
-                8. Contact Information
+                8. Data Retention & Deletion
+              </h2>
+              <ul className="list-disc pl-6 space-y-1.5 text-slate-600">
+                <li>Google OAuth credentials are kept only while your Google account is connected, and are deleted as soon as you disconnect.</li>
+                <li>Meetings, transcripts imported from Google Meet, Minutes of Meeting, and action items are kept for as long as they exist in your workspace. Deleting a meeting permanently deletes its transcript, generated minutes, action items, and attachments.</li>
+                <li>Calendar events created by MOM Creator remain in your Google Calendar until you or MOM Creator delete them; MOM Creator does not keep a copy of your other calendar data.</li>
+                <li>To delete your account and all associated data, email us at the address below. We complete deletion requests within 30 days.</li>
+              </ul>
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-2">
+                9. Contact Information
               </h2>
               <p>
-                For questions or requests concerning this Privacy Policy, your personal data, or data deletion, please contact the MOM Creator support team.
+                For questions or requests concerning this Privacy Policy, your personal data, or data deletion, please contact the MOM Creator support team at{' '}
+                <a href="mailto:techsupport@brickfour.com" className="text-blue-600 hover:text-cyan-600 underline">techsupport@brickfour.com</a>.
               </p>
             </section>
           </div>

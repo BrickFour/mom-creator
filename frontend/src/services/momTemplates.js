@@ -1,5 +1,6 @@
 import { getSupabase } from '../lib/supabase.js';
 import { apiRequest } from '../lib/api.js';
+import { hasDemoSession } from '../lib/demoAccounts.js';
 
 const BUCKET = 'workspace-mom-template';
 
@@ -24,12 +25,6 @@ export async function uploadMOMTemplate(
   file,
   sourceType = 'template'
 ) {
-  const supabase = getSupabase();
-
-  if (!supabase) {
-    throw new Error('Supabase is not configured');
-  }
-
   if (!file) {
     throw new Error('Please select a file');
   }
@@ -50,19 +45,51 @@ export async function uploadMOMTemplate(
     throw new Error('File size must be 10 MB or less');
   }
 
-  const safeName = sanitizeFileName(file.name);
+  const isDemo = hasDemoSession();
 
-  const filePath = `${workspaceId}/${Date.now()}-${safeName}`;
+  let filePath;
+  let fileType = file.type || null;
+  let fileSize = file.size;
 
-  const { error: uploadError } = await supabase.storage
-    .from(BUCKET)
-    .upload(filePath, file, {
-      contentType: file.type || 'application/octet-stream',
-      upsert: false,
-    });
+  if (isDemo) {
+    // Demo accounts never get a real Supabase Auth session (see
+    // AuthContext), so a direct browser -> Supabase Storage upload is
+    // rejected by RLS as anonymous. Upload through the backend instead,
+    // which writes with the service-role client.
+    const form = new FormData();
+    form.append('file', file);
 
-  if (uploadError) {
-    throw new Error(uploadError.message || 'Failed to upload file');
+    const uploaded = await apiRequest(
+      `/api/v1/mom-templates/workspace/${workspaceId}/upload`,
+      {
+        method: 'POST',
+        body: form,
+      }
+    );
+
+    filePath = uploaded.file_path;
+    fileType = uploaded.file_type || fileType;
+    fileSize = uploaded.file_size ?? fileSize;
+  } else {
+    const supabase = getSupabase();
+
+    if (!supabase) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const safeName = sanitizeFileName(file.name);
+    filePath = `${workspaceId}/${Date.now()}-${safeName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(filePath, file, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw new Error(uploadError.message || 'Failed to upload file');
+    }
   }
 
   try {
@@ -74,16 +101,17 @@ export async function uploadMOMTemplate(
           name: file.name,
           file_name: file.name,
           file_path: filePath,
-          file_type: file.type || null,
-          file_size: file.size,
+          file_type: fileType,
+          file_size: fileSize,
           source_type: sourceType,
         }),
       }
     );
   } catch (error) {
-    await supabase.storage
-      .from(BUCKET)
-      .remove([filePath]);
+    if (!isDemo) {
+      const supabase = getSupabase();
+      await supabase?.storage.from(BUCKET).remove([filePath]);
+    }
 
     throw error;
   }
@@ -96,7 +124,10 @@ export async function replaceMOMTemplate(
 ) {
   const existing = await getMOMTemplate(workspaceId);
 
-  if (existing?.file_path) {
+  // For demo sessions, skip the direct browser -> Storage removal (it would
+  // be rejected by RLS); deleteMOMTemplate below already removes the file
+  // from storage server-side with the service-role client.
+  if (existing?.file_path && !hasDemoSession()) {
     const supabase = getSupabase();
 
     const { error } = await supabase.storage

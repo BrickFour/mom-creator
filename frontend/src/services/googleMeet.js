@@ -6,6 +6,14 @@ export async function connectGoogleMeet() {
   });
 }
 
+// Disconnects both Google Meet and Google Calendar (they share one Google
+// connection): revokes the grant at Google and deletes the stored token.
+export async function disconnectGoogle() {
+  return await apiRequest('/api/v1/integrations/google/connection', {
+    method: 'DELETE',
+  });
+}
+
 export async function createGoogleMeet(meetingId) {
   return await apiRequest(`/api/v1/integrations/google/meetings/${meetingId}/meet`, {
     method: 'POST',

@@ -17,6 +17,7 @@ settings = get_settings()
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke"
 
 GOOGLE_MEET_SCOPES = [
     "https://www.googleapis.com/auth/meetings.space.created",
@@ -280,6 +281,56 @@ async def refresh_access_token(
         }).eq("user_id", user_id).execute()
 
     return access_token
+
+
+async def disconnect_google_connection(
+    supabase_admin: Client,
+    user_id: str,
+) -> dict[str, Any]:
+    """Revoke the user's Google grant and delete the stored connection.
+
+    The stored row is deleted even if Google rejects the revoke call (for
+    example when the user already removed access from their Google
+    account), so no Google credentials are kept after a disconnect.
+    """
+    response = (
+        supabase_admin
+        .table("google_connections")
+        .select("refresh_token_encrypted")
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    if not response.data:
+        return {"disconnected": False, "revoked": False}
+
+    revoked = False
+    encrypted_refresh_token = response.data[0].get("refresh_token_encrypted")
+
+    if encrypted_refresh_token:
+        try:
+            refresh_token = decrypt_refresh_token(encrypted_refresh_token)
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                revoke_response = await client.post(
+                    GOOGLE_REVOKE_URL,
+                    data={"token": refresh_token},
+                    headers={
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                )
+            revoked = revoke_response.status_code < 400
+        except Exception:
+            revoked = False
+
+    (
+        supabase_admin
+        .table("google_connections")
+        .delete()
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    return {"disconnected": True, "revoked": revoked}
 
 
 def save_google_connection(
